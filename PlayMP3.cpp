@@ -24,20 +24,6 @@ namespace MP3MediaPlayer {
             std::cerr << "Failed to initialize PortAudio" << std::endl;
             throw std::runtime_error("PortAudio initialization failed");
         }
-        const PaDeviceInfo* deviceInfo;
-        int numDevices = Pa_GetDeviceCount();
-
-        for( int DevIndex=0; DevIndex<numDevices; DevIndex++ )
-        {
-            deviceInfo = Pa_GetDeviceInfo( DevIndex );
-
-            std::string str = Pa_GetHostApiInfo(deviceInfo->hostApi)->name;
-
-            std::cout << "DEV: ApiInfo: " << str;
-            std::cout << "defaultSampleRate = " << deviceInfo->defaultSampleRate;
-            std::cout << "maxInputChannels = " << deviceInfo->maxInputChannels;
-            std::cout << "maxOutputChannels = " << deviceInfo->maxOutputChannels;
-        }
         driver = Pa_GetDefaultOutputDevice();
 
         // Set up the buffer size and other parameters
@@ -47,8 +33,17 @@ namespace MP3MediaPlayer {
 
     void PlayMP3::music(char* mp3) {
         track = mp3;
-        mpg123_open(mh, mp3);
-        mpg123_getformat(mh, &rate, &channels, &encoding);
+        int openResult = mpg123_open(mh, mp3);
+        if (openResult != MPG123_OK) {
+            std::cerr << "Failed to open MP3 file: " << mpg123_strerror(mh) << std::endl;
+            throw std::runtime_error("Failed to open MP3 file");
+        }
+
+        int formatResult = mpg123_getformat(mh, &rate, &channels, &encoding);
+        if (formatResult != MPG123_OK) {
+            std::cerr << "Failed to get MP3 format: " << mpg123_strerror(mh) << std::endl;
+            throw std::runtime_error("Failed to get MP3 format");
+        }
 
         // Set up PortAudio stream parameters
         param.device = driver;
@@ -56,38 +51,68 @@ namespace MP3MediaPlayer {
         param.sampleFormat = paFloat32; // Use float32 format for PortAudio
         param.suggestedLatency = Pa_GetDeviceInfo(driver)->defaultLowOutputLatency;
         param.hostApiSpecificStreamInfo = nullptr;
-        err = Pa_OpenStream(&stream, nullptr, &param, rate, buffer_size, paClipOff, nullptr, nullptr);
-        if (err != paNoError) {
-            std::cerr << "Failed to open PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
-            throw std::runtime_error("PortAudio stream opening failed");
-        }
     }
 
     void PlayMP3::play() {
         std::cout << "\033[33;1m\u25B6 Playing the song: \033[35;1m ";
         std::cout << track << "\033[m\n";
 
+        // Use a smaller, fixed buffer size for lower latency
+        const size_t frames = 1024; // Smaller buffer for reduced latency
+
+        // Open stream with optimized settings
+        err = Pa_OpenStream(
+                &stream,
+                nullptr,
+                &param,
+                rate,
+                frames,
+                paClipOff,
+                nullptr,
+                nullptr
+        );
+
+        if (err != paNoError) {
+            std::cerr << "Failed to open PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
+            throw std::runtime_error("PortAudio stream opening failed");
+        }
+
         err = Pa_StartStream(stream);
         if (err != paNoError) {
             std::cerr << "Failed to start PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
             throw std::runtime_error("PortAudio stream starting failed");
         }
-        while(true){
-            err = mpg123_read(mh, reinterpret_cast<unsigned char*>(buffer.get()), buffer_size, nullptr);
-            if (err == MPG123_DONE) {
-                std::cout << "\033[33;1m\u25B6 Finished playing the song: \033[35;1m ";
-                std::cout << track << "\033[m\n";
-                break;
-            } else if (err < 0) {
-                std::cerr << "Error reading MP3 data: " << mpg123_strerror(mh) << std::endl;
+
+        // Allocate buffers
+        std::vector<float> floatBuffer(frames * channels);
+        std::vector<short> shortBuffer(frames * channels);
+
+        // Read and write loop with more efficient processing
+        while (true) {
+            // Read directly into the short buffer
+            size_t bytesToRead = shortBuffer.size() * sizeof(short);
+            if (mpg123_read(mh, reinterpret_cast<unsigned char*>(shortBuffer.data()),
+                            bytesToRead, &done) != MPG123_OK) {
                 break;
             }
-            err = Pa_WriteStream(stream, buffer.get(), buffer_size / (sizeof(float) * channels));
-            if( err != paNoError) {
-                std::cerr << "Failed to write to PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
+
+            // Calculate actual frames read
+            size_t framesRead = done / (sizeof(short) * channels);
+            if (framesRead == 0) break;
+
+            // Convert samples more efficiently
+            for (size_t i = 0; i < framesRead * channels; ++i) {
+                floatBuffer[i] = static_cast<float>(shortBuffer[i]) / 32768.0f;
+            }
+
+            // Write data to stream
+            err = Pa_WriteStream(stream, floatBuffer.data(), framesRead);
+            if (err != paNoError) {
+                std::cerr << "Failed to write to stream: " << Pa_GetErrorText(err) << std::endl;
                 break;
             }
         }
+
         err = Pa_StopStream(stream);
         if (err != paNoError) {
             std::cerr << "Failed to stop PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
