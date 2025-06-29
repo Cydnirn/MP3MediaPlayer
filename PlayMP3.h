@@ -15,7 +15,7 @@ namespace MP3MediaPlayer {
 // Created by rei on 6/23/25.
 //
     class PlayMP3 {
-        std::size_t buffer_size, done;
+        std::size_t buffer_size, done{};
         int driver, err{}, channels{}, encoding{};
         long rate{};
         std::string track;
