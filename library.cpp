@@ -1,18 +1,11 @@
 #include <iostream>
-#include <queue>
 #include <vector>
 #include <string>
-
-
-struct musicLib {
-    std::string judul, artist;
-    int year;
-};
-
+#include "library.h"
 //#Sortir Tahun 0-9
 
 void sortByYearDes(std::vector<musicLib>& musicList) {
-    int size = musicList.size();
+    const int size = musicList.size();
     for (int i = 0; i < size - 1;i++) {
         bool swapped = false;
         for (int j = 0; j < size - i - 1; j++) {
@@ -28,7 +21,7 @@ void sortByYearDes(std::vector<musicLib>& musicList) {
 //#Sortir Tahun 9-0
 
 void sortByYearAsc(std::vector<musicLib>& musicList) {
-    int size = musicList.size();
+    const int size = musicList.size();
     for (int i = 0; i < size - 1;i++) {
         bool swapped = false;
         for (int j = 0; j < size - i - 1; j++) {
@@ -44,11 +37,11 @@ void sortByYearAsc(std::vector<musicLib>& musicList) {
 //#Sortir Huruf Z-A
 
 void sortByHurufAsc(std::vector<musicLib>& musicList) {
-    int size = musicList.size();
+    const int size = musicList.size();
     for (int i = 0; i < size -1; i++) {
         bool swapped = false;
         for (int j = 0; j < size - i - 1; j++) {
-            if (musicList[j].judul < musicList[j + 1].judul) {
+            if (musicList[j].title < musicList[j + 1].title) {
             std::swap(musicList[j], musicList[j + 1]);
             swapped = true;
             }
@@ -60,11 +53,11 @@ void sortByHurufAsc(std::vector<musicLib>& musicList) {
 //#Sortir Huruf A-Z
 
 void sortByHurufDes(std::vector<musicLib>& musicList) {
-    int size = musicList.size();
+    const int size = musicList.size();
     for (int i = 0; i < size -1; i++) {
         bool swapped = false;
         for (int j = 0; j < size - i - 1; j++) {
-            if (musicList[j].judul > musicList[j + 1].judul) {
+            if (musicList[j].title > musicList[j + 1].title) {
             std::swap(musicList[j], musicList[j + 1]);
             swapped = true;
             }
@@ -74,7 +67,7 @@ void sortByHurufDes(std::vector<musicLib>& musicList) {
 }
 
 void printMusic(const musicLib& music) {
-std::cout << ". " << music.judul << " - " << music.artist << ", release " << music.year << std::endl;
+std::cout << ". " << music.title << " - " << music.artist << ", release " << music.year << std::endl;
 }
 
 //##Display list musik
@@ -83,9 +76,9 @@ void printMusicList(std::vector<musicLib>& musicList) {
     int i = 1;
     std::cout << "==================== Music List ====================\n";
     for (const auto& music : musicList) {
-      std::cout << i; 
-      printMusic(music);  
-      i++; 
+      std::cout << i;
+      printMusic(music);
+      i++;
     }
 }
 
@@ -93,7 +86,7 @@ void printMusicList(std::vector<musicLib>& musicList) {
 void searchTitle(const std::vector<musicLib>& musicList, const std::string& keyword) {
     std::vector<musicLib> result;
     for (const auto& music : musicList) {
-        if (music.judul.find(keyword) != std::string::npos) {
+        if (music.title.find(keyword) != std::string::npos) {
             result.push_back(music);
         }
     }
@@ -106,7 +99,7 @@ void searchTitle(const std::vector<musicLib>& musicList, const std::string& keyw
     }
 }
 
-//sample doang buat test output 
+//sample doang buat test output
 
 std::vector<musicLib> musicSample() {
     musicLib music1 = {"Heaven and Back", "Chase Atlantic", 2022};
