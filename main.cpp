@@ -13,8 +13,8 @@ int main() {
     std::string x,y;
     int pos;
     int menu;
-    int counterX = 0;
-    int counterY = 0;
+    bool sortYear = true;
+    bool sortName = true;
     bool start = true;
 
     while(true) {
@@ -23,11 +23,10 @@ int main() {
         printPlaylist();
         std::cout << "====================    Menu    ====================\n";
         std::cout << "| 1.Sort Tahun | 2.Sort Nama | 3.Search Musik | 4.Tambah Musik | 5.Exit : ";
-        std::cin >> menu; 
+        std::cin >> menu;
         switch (menu) {
             case 1:
-            counterX++;
-            if (counterX / 2 == 0) {
+            if (sortYear) {
                 sortByYearDes(music);
             } else {
                 sortByYearAsc(music);
@@ -35,13 +34,12 @@ int main() {
             break;
 
             case 2:
-            counterY++;
-            if (counterY / 2 == 0) {
+            if (sortName) {
                 sortByHurufDes(music);
             } else {
                 sortByHurufAsc(music);
             }
         }
 }
-    
+
     //std::cout << "====================================================\n";
