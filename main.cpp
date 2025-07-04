@@ -2,13 +2,18 @@
 #include <string>
 #include <limits>
 #include "queue.cpp"
-#include "library.cpp"
 #include <memory>
+
+#include "library.h"
+#include "Files.h"
 #include "PlayMP3.h"
 
 // TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-int main() {
-    std::vector<musicLib> music = musicSample();
+int main()
+{
+    auto player = std::make_unique<MP3MediaPlayer::PlayMP3>();
+    std::vector<std::string> mp3Entry = files.findMp3("");
+    auto music = files.getMusic(mp3Entry);
     std::string keyword;
     std::string x,y;
     int pos;
@@ -17,7 +22,7 @@ int main() {
     bool sortName = true;
     bool start = true;
 
-    while(true) {
+    while(start) {
 
         printMusicList(music);
         printPlaylist();
@@ -25,21 +30,32 @@ int main() {
         std::cout << "| 1.Sort Tahun | 2.Sort Nama | 3.Search Musik | 4.Tambah Musik | 5.Exit : ";
         std::cin >> menu;
         switch (menu) {
-            case 1:
+        case 1:
             if (sortYear) {
                 sortByYearDes(music);
+                sortYear = !sortYear;
             } else {
                 sortByYearAsc(music);
+                sortYear = !sortYear;
             }
             break;
 
-            case 2:
+        case 2:
             if (sortName) {
                 sortByHurufDes(music);
+                sortName = !sortName;
             } else {
                 sortByHurufAsc(music);
+                sortName = !sortName;
             }
+        case 5:
+            start = false;
+            break;
+        default:
+            break;
         }
+    }
+    return 0;
 }
 
     //std::cout << "====================================================\n";
