@@ -13,6 +13,7 @@ enum playStatus {
 struct Music 
 {
     std::string title, artist;
+    int year;
     Music* next;
 };
 
@@ -42,11 +43,12 @@ int countList() {
     return jumlah;
 }
 
-void addMusic(std::string title, std::string artist) 
+void addMusic(std::string title, std::string artist, int year) 
 {
     newNode = new Music();
     newNode->title = title;
     newNode->artist = artist;
+    newNode->year = year;
     newNode->next = NULL;
     if (isEmpty()) {
         head=tail=newNode;
@@ -54,8 +56,42 @@ void addMusic(std::string title, std::string artist)
         tail->next = newNode;
         tail = newNode;      
     }
-    std::cout << "Ditambahkan ke playlist " << title << " - " << artist;
+    std::cout << "Ditambahkan ke playlist " << title << " - " << artist << "\n\n";
 }
+
+void printPlaylist() 
+{
+        std::cout << "===================== Playlist ====================\n";
+    if (isEmpty()) {
+        std::cout << "Playlist kosong!\n";
+        return;
+    }
+    bantu = head;
+    int index = 1;
+
+    while (bantu != NULL) {
+        std::cout << index++ << "." << bantu->title << " - " << bantu->artist << std::endl;
+        bantu = bantu->next;
+    }
+}
+
+void playNext() {
+    if (isEmpty()) {
+        std::cout << "Playlist kosong!" << std::endl;
+        return;
+    }
+
+    bantu = head;
+    std::cout << "Selesai memutar : " << bantu->title << " - "<< bantu->artist <<std::endl;
+
+    head = head->next;
+    delete bantu;
+
+    if (head == NULL) {
+        tail = NULL;
+    }
+}
+
 
 void removeMusic(int pos) {
   if(isEmpty()) {
@@ -98,41 +134,6 @@ void removeMusic(int pos) {
   }
 
   delete del;
-}
-
-void printMusicList() 
-{
-    if (isEmpty()) {
-        std::cout << "Playlist kosong!\n";
-        return;
-    }
-
-    std::cout << "\n Sedang memutar :\n";
-    bantu = head;
-    int index = 1;
-
-    while (bantu != NULL) {
-        std::cout << index++ << ". " << bantu->title << " - " << bantu->artist << std::endl;
-        bantu = bantu->next;
-    }
-    std::cout << std::endl;
-}
-
-void playNext() {
-    if (isEmpty()) {
-        std::cout << "Playlist kosong!" << std::endl;
-        return;
-    }
-
-    bantu = head;
-    std::cout << "Selesai memutar : " << bantu->title << " - "<< bantu->artist <<std::endl;
-
-    head = head->next;
-    delete bantu;
-
-    if (head == NULL) {
-        tail = NULL;
-    }
 }
 
 void nowPlaying() {
