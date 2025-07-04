@@ -9,6 +9,8 @@ find_package(portaudio CONFIG REQUIRED)
 add_executable(MP3MediaPlayer main.cpp
         PlayMP3.cpp
         PlayMP3.h
+        Files.cpp
+        Files.h
 )
 
 target_link_libraries(MP3MediaPlayer PRIVATE MPG123::libmpg123 MPG123::libout123 MPG123::libsyn123)

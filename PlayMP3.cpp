@@ -33,16 +33,19 @@ namespace MP3MediaPlayer {
 
     void PlayMP3::music(char* mp3) {
         track = mp3;
-        int openResult = mpg123_open(mh, mp3);
-        if (openResult != MPG123_OK) {
+        if (const int openResult = mpg123_open(mh, mp3); openResult != MPG123_OK) {
             std::cerr << "Failed to open MP3 file: " << mpg123_strerror(mh) << std::endl;
             throw std::runtime_error("Failed to open MP3 file");
         }
 
-        int formatResult = mpg123_getformat(mh, &rate, &channels, &encoding);
-        if (formatResult != MPG123_OK) {
+        if (const int formatResult = mpg123_getformat(mh, &rate, &channels, &encoding); formatResult != MPG123_OK) {
             std::cerr << "Failed to get MP3 format: " << mpg123_strerror(mh) << std::endl;
             throw std::runtime_error("Failed to get MP3 format");
+        }
+        std::cout << "MP3 Format: " << rate << " Hz, " << channels << " channels, encoding: " << encoding << std::endl;
+        if (rate < 48000) {
+            std::cerr << "Warning: Sample rate is below 48 kHz, which may affect audio quality." << std::endl;
+            rate = 48000; // Ensure minimum sample rate
         }
 
         // Set up PortAudio stream parameters
@@ -58,7 +61,7 @@ namespace MP3MediaPlayer {
         std::cout << track << "\033[m\n";
 
         // Use a smaller, fixed buffer size for lower latency
-        const size_t frames = 1024; // Smaller buffer for reduced latency
+        constexpr size_t frames = 1024; // Smaller buffer for reduced latency
 
         // Open stream with optimized settings
         err = Pa_OpenStream(
@@ -90,14 +93,13 @@ namespace MP3MediaPlayer {
         // Read and write loop with more efficient processing
         while (true) {
             // Read directly into the short buffer
-            size_t bytesToRead = shortBuffer.size() * sizeof(short);
-            if (mpg123_read(mh, reinterpret_cast<unsigned char*>(shortBuffer.data()),
-                            bytesToRead, &done) != MPG123_OK) {
+            if (const size_t bytesToRead = shortBuffer.size() * sizeof(short); mpg123_read(mh, reinterpret_cast<unsigned char*>(shortBuffer.data()),
+                                                                                     bytesToRead, &done) != MPG123_OK) {
                 break;
             }
 
             // Calculate actual frames read
-            size_t framesRead = done / (sizeof(short) * channels);
+            const size_t framesRead = done / (sizeof(short) * channels);
             if (framesRead == 0) break;
 
             // Convert samples more efficiently
