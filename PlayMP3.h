@@ -23,18 +23,13 @@ namespace MP3MediaPlayer {
         mpg123_handle *mh;
         std::shared_ptr<char> buffer;
 
-
-
         PaStreamParameters param{};
         PaStream *stream{};
 
     public:
         PlayMP3();
-
         ~PlayMP3();
-
-        void music(char *);
-
+        void music(const char *);
         void play();
     };
 }
