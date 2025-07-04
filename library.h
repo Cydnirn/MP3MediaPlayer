@@ -9,6 +9,7 @@
 struct musicLib {
     std::string title, artist;
     u_int year;
+    std::string path;
 };
 
 bool compareMusicByTitle(const musicLib &a, const musicLib &b);

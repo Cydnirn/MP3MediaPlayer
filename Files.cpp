@@ -64,6 +64,7 @@ std::vector<musicLib> Files::getMusic(const std::vector<std::string> &mp3Entry)
             music.title = tag->title().toCString(true);
             music.artist = tag->artist().toCString(true);
             music.year = tag->year();
+            music.path = mp3;
             musicList.push_back(music);
         }
     }

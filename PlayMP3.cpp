@@ -31,7 +31,7 @@ namespace MP3MediaPlayer {
         buffer = std::shared_ptr<char>(new char[buffer_size], std::default_delete<char[]>());
     }
 
-    void PlayMP3::music(char* mp3) {
+    void PlayMP3::music(const char* mp3) {
         track = mp3;
         if (const int openResult = mpg123_open(mh, mp3); openResult != MPG123_OK) {
             std::cerr << "Failed to open MP3 file: " << mpg123_strerror(mh) << std::endl;
@@ -123,9 +123,12 @@ namespace MP3MediaPlayer {
     }
 
     PlayMP3::~PlayMP3() {
-        err = Pa_CloseStream(stream);
-        if (err != paNoError) {
-            std::cerr << "Failed to close PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
+        if (stream)
+        {
+            err = Pa_CloseStream(stream);
+            if (err != paNoError) {
+                std::cerr << "Failed to close PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
+            }
         }
         mpg123_close(mh);
         mpg123_delete(mh);

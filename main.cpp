@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string>
-#include <limits>
-#include "queue.cpp"
 #include <memory>
+#include <cstdlib>
+#include "queue.cpp"
 
 #include "library.h"
 #include "Files.h"
@@ -23,7 +23,11 @@ int main()
     bool start = true;
 
     while(start) {
-
+        #ifdef _WIN32
+        system("cls");
+        #else
+        system("clear");
+        #endif
         printMusicList(music);
         printPlaylist();
         std::cout << "====================    Menu    ====================\n";
@@ -39,7 +43,6 @@ int main()
                 sortYear = !sortYear;
             }
             break;
-
         case 2:
             if (sortName) {
                 sortByHurufDes(music);
@@ -48,6 +51,7 @@ int main()
                 sortByHurufAsc(music);
                 sortName = !sortName;
             }
+            break;
         case 5:
             start = false;
             break;

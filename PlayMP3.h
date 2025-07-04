@@ -29,7 +29,7 @@ namespace MP3MediaPlayer {
     public:
         PlayMP3();
         ~PlayMP3();
-        void music(char *);
+        void music(const char *);
         void play();
     };
 }
