@@ -2,20 +2,7 @@
 #include <queue>
 #include <vector>
 #include <string>
-
-
-enum playStatus {
-    notPlaying,
-    playing,
-    paused
-};
-
-struct Music 
-{
-    std::string title, artist;
-    int year;
-    Music* next;
-};
+#include "queue.h"
 
 Music *head, *tail, *newNode, *bantu;
 
@@ -43,12 +30,20 @@ int countList() {
     return jumlah;
 }
 
-void addMusic(std::string title, std::string artist, int year) 
+void addMusic(const uint pos, const std::vector<musicLib>& Library)
 {
+    if (pos == 0 || pos > Library.size()) {
+        std::cout << "Invalid position! Please enter a position between 1 and " << Library.size() << std::endl;
+        std::cout << "Press Enter to continue...";
+        std::cin.ignore();
+        std::cin.get();
+        return;
+    }
     newNode = new Music();
-    newNode->title = title;
-    newNode->artist = artist;
-    newNode->year = year;
+    newNode->title = Library[pos-1].title;
+    newNode->artist = Library[pos-1].artist;
+    newNode->year = Library[pos-1].year;
+    newNode->path = Library[pos-1].path;
     newNode->next = NULL;
     if (isEmpty()) {
         head=tail=newNode;
@@ -56,7 +51,7 @@ void addMusic(std::string title, std::string artist, int year)
         tail->next = newNode;
         tail = newNode;      
     }
-    std::cout << "Ditambahkan ke playlist " << title << " - " << artist << "\n\n";
+    std::cout << "Ditambahkan ke playlist " << newNode->title << " - " << newNode->artist << "\n\n";
 }
 
 void printPlaylist() 

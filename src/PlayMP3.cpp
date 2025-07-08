@@ -32,6 +32,9 @@ namespace MP3MediaPlayer {
     }
 
     void PlayMP3::music(const char* mp3) {
+        // Stop any current playback first
+        stop();
+
         track = mp3;
         if (const int openResult = mpg123_open(mh, mp3); openResult != MPG123_OK) {
             std::cerr << "Failed to open MP3 file: " << mpg123_strerror(mh) << std::endl;
@@ -57,44 +60,67 @@ namespace MP3MediaPlayer {
     }
 
     void PlayMP3::play() {
-        std::cout << "\033[33;1m\u25B6 Playing the song: \033[35;1m ";
-        std::cout << track << "\033[m\n";
+        //std::cout << "\033[33;1m\u25B6 Playing the song: \033[35;1m ";
+        //std::cout << track << "\033[m\n";
 
+        // Reset control flags
+        shouldStop = false;
+        isPaused = false;
+
+        // Start a new thread for playback if not already running
+        if (!playbackThread.joinable()) {
+            playbackThread = std::thread(&PlayMP3::playbackLoop, this);
+        } else {
+            // If thread is running but paused, unpause it
+            isPaused = false;
+        }
+    }
+
+    void PlayMP3::playbackLoop() {
         // Use a smaller, fixed buffer size for lower latency
         constexpr size_t frames = 1024; // Smaller buffer for reduced latency
 
         // Open stream with optimized settings
-        err = Pa_OpenStream(
-                &stream,
-                nullptr,
-                &param,
-                rate,
-                frames,
-                paClipOff,
-                nullptr,
-                nullptr
-        );
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            err = Pa_OpenStream(
+                    &stream,
+                    nullptr,
+                    &param,
+                    rate,
+                    frames,
+                    paClipOff,
+                    nullptr,
+                    nullptr
+            );
 
-        if (err != paNoError) {
-            std::cerr << "Failed to open PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
-            throw std::runtime_error("PortAudio stream opening failed");
-        }
+            if (err != paNoError) {
+                std::cerr << "Failed to open PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
+                return;
+            }
 
-        err = Pa_StartStream(stream);
-        if (err != paNoError) {
-            std::cerr << "Failed to start PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
-            throw std::runtime_error("PortAudio stream starting failed");
+            err = Pa_StartStream(stream);
+            if (err != paNoError) {
+                std::cerr << "Failed to start PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
+                return;
+            }
         }
 
         // Allocate buffers
-        std::vector<float> floatBuffer(frames * channels);
-        std::vector<short> shortBuffer(frames * channels);
+        floatBuffer.resize(frames * channels);
+        shortBuffer.resize(frames * channels);
 
         // Read and write loop with more efficient processing
-        while (true) {
+        while (!shouldStop) {
+            if (isPaused) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                continue;
+            }
+
             // Read directly into the short buffer
-            if (const size_t bytesToRead = shortBuffer.size() * sizeof(short); mpg123_read(mh, reinterpret_cast<unsigned char*>(shortBuffer.data()),
-                                                                                     bytesToRead, &done) != MPG123_OK) {
+            size_t bytesToRead = shortBuffer.size() * sizeof(short);
+            if (mpg123_read(mh, reinterpret_cast<unsigned char*>(shortBuffer.data()),
+                            bytesToRead, &done) != MPG123_OK) {
                 break;
             }
 
@@ -115,21 +141,59 @@ namespace MP3MediaPlayer {
             }
         }
 
-        err = Pa_StopStream(stream);
-        if (err != paNoError) {
-            std::cerr << "Failed to stop PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
-            throw std::runtime_error("PortAudio stream stopping failed");
-        }
-    }
-
-    PlayMP3::~PlayMP3() {
-        if (stream)
-        {
+        // Clean up stream
+        std::lock_guard<std::mutex> lock(mutex);
+        if (stream) {
+            err = Pa_StopStream(stream);
+            if (err != paNoError) {
+                std::cerr << "Failed to stop PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
+            }
             err = Pa_CloseStream(stream);
             if (err != paNoError) {
                 std::cerr << "Failed to close PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
             }
+            stream = nullptr;
         }
+    }
+
+    void PlayMP3::pause()
+    {
+        if (playbackThread.joinable()) {
+            isPaused = true;
+            //std::cout << "\033[33;1m\u23F8 Paused the song: \033[35;1m " << track << "\033[m\n";
+        }
+    }
+
+    bool PlayMP3::isPlaying() const
+    {
+        return playbackThread.joinable() && !isPaused;
+    }
+
+    void PlayMP3::stop()
+    {
+        if (playbackThread.joinable()) {
+            // Signal thread to stop
+            shouldStop = true;
+
+            // Wait for thread to finish
+            if (playbackThread.joinable()) {
+                playbackThread.join();
+            }
+
+            // Reset the playback state without fully cleaning up the library resources
+            std::lock_guard<std::mutex> lock(mutex);
+            if (mh) {
+                mpg123_close(mh);
+            }
+
+            std::cout << "\033[33;1m\u25A0 Stopped the song: \033[35;1m " << track << "\033[m\n";
+        }
+    }
+
+    PlayMP3::~PlayMP3() {
+        // Make sure playback thread is stopped
+        stop();
+
         mpg123_close(mh);
         mpg123_delete(mh);
         mpg123_exit();
