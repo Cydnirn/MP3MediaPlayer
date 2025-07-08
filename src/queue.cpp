@@ -30,7 +30,7 @@ int countList() {
     return jumlah;
 }
 
-void addMusic(const uint pos, const std::vector<musicLib>& Library)
+void addMusic(const uint64_t pos, const std::vector<musicLib>& Library)
 {
     if (pos == 0 || pos > Library.size()) {
         std::cout << "Invalid position! Please enter a position between 1 and " << Library.size() << std::endl;

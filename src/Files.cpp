@@ -17,9 +17,9 @@ Files::Files()
     // Windows
     homeDir = std::getenv("USERPROFILE");
     if (homeDir) {
-        musicDirectory = std::string(homeDir) + "\\Music";
+        directory = std::string(homeDir) + "\\Music";
     } else {
-        musicDirectory = "C:\\Music"; // Fallback
+        directory = "C:\\Music"; // Fallback
     }
     #else
     // Linux

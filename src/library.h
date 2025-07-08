@@ -8,7 +8,7 @@
 
 struct musicLib {
     std::string title, artist;
-    u_int year;
+    uint64_t year;
     std::string path;
 };
 

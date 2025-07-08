@@ -15,14 +15,14 @@ enum playStatus {
 struct Music
 {
     std::string title, artist, path;
-    uint year;
+    uint64_t year;
     Music* next;
 };
 
 void awal();
 bool isEmpty();
 int countList();
-void addMusic(const uint pos, const std::vector<musicLib>& Library);
+void addMusic(const uint64_t pos, const std::vector<musicLib>& Library);
 void printPlaylist();
 void playNext();
 void removeMusic(int pos);

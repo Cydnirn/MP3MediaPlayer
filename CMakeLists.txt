@@ -20,5 +20,5 @@ add_executable(MP3MediaPlayer src/main.cpp
 )
 
 target_link_libraries(MP3MediaPlayer PRIVATE MPG123::libmpg123 MPG123::libout123 MPG123::libsyn123)
-target_link_libraries(MP3MediaPlayer PRIVATE portaudio_static)
+target_link_libraries(MP3MediaPlayer PRIVATE portaudio)
 target_link_libraries(MP3MediaPlayer PRIVATE TagLib::tag TagLib::tag_c TagLib::TagLib)
