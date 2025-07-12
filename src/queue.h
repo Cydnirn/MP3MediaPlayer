@@ -28,4 +28,5 @@ void playNext();
 void removeMusic(int pos);
 void nowPlaying();
 void clearPlaylist();
+void updateMusic(int pos, const std::vector<musicLib>& Library,int libIndex);
 #endif //QUEUE_H
