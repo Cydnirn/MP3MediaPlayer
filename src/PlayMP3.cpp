@@ -45,7 +45,7 @@ namespace MP3MediaPlayer {
             std::cerr << "Failed to get MP3 format: " << mpg123_strerror(mh) << std::endl;
             throw std::runtime_error("Failed to get MP3 format");
         }
-        std::cout << "MP3 Format: " << rate << " Hz, " << channels << " channels, encoding: " << encoding << std::endl;
+        //std::cout << "MP3 Format: " << rate << " Hz, " << channels << " channels, encoding: " << encoding << std::endl;
         if (rate < 48000) {
             std::cerr << "Warning: Sample rate is below 48 kHz, which may affect audio quality." << std::endl;
             rate = 48000; // Ensure minimum sample rate
@@ -185,8 +185,6 @@ namespace MP3MediaPlayer {
             if (mh) {
                 mpg123_close(mh);
             }
-
-            std::cout << "\033[33;1m\u25A0 Stopped the song: \033[35;1m " << track << "\033[m\n";
         }
     }
 
