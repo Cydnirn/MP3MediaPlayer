@@ -19,10 +19,6 @@ add_executable(MP3MediaPlayer src/main.cpp
         src/queue.cpp
 )
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    find_package(Threads REQUIRED)
-    target_link_libraries(MP3MediaPlayer PRIVATE Threads::Threads)
-
 target_link_libraries(MP3MediaPlayer PRIVATE MPG123::libmpg123 MPG123::libout123 MPG123::libsyn123)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_libraries(MP3MediaPlayer PRIVATE portaudio_static)
