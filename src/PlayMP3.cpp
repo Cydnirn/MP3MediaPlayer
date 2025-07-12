@@ -46,15 +46,11 @@ namespace MP3MediaPlayer {
             throw std::runtime_error("Failed to get MP3 format");
         }
         //std::cout << "MP3 Format: " << rate << " Hz, " << channels << " channels, encoding: " << encoding << std::endl;
-#ifdef _WIN32
-#else
         if (rate < 48000)
         {
             std::cerr << "Warning: Sample rate is below 48 kHz, which may affect audio quality." << std::endl;
             rate = 48000; // Ensure minimum sample rate
         }
-#endif
-
         // Set up PortAudio stream parameters
         param.device = driver;
         param.channelCount = channels;
