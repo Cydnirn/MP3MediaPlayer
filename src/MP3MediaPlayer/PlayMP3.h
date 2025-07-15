@@ -36,6 +36,7 @@ namespace MP3MediaPlayer {
         std::thread playbackThread;
         std::atomic<bool> shouldStop{false};
         std::atomic<bool> isPaused{false};
+        std::atomic<bool> songFinished{false};
         std::mutex mutex;
 
     public:

@@ -66,6 +66,7 @@ namespace MP3MediaPlayer {
         // Reset control flags
         shouldStop = false;
         isPaused = false;
+        songFinished = false;
 
         // Start a new thread for playback if not already running
         if (!playbackThread.joinable()) {
@@ -121,12 +122,16 @@ namespace MP3MediaPlayer {
             size_t bytesToRead = shortBuffer.size() * sizeof(short);
             if (mpg123_read(mh, reinterpret_cast<unsigned char*>(shortBuffer.data()),
                             bytesToRead, &done) != MPG123_OK) {
+                songFinished = true;
                 break;
             }
 
             // Calculate actual frames read
             const size_t framesRead = done / (sizeof(short) * channels);
-            if (framesRead == 0) break;
+            if (framesRead == 0) {
+                songFinished = true;
+                break;
+            };
 
             // Convert samples more efficiently
             for (size_t i = 0; i < framesRead * channels; ++i) {
@@ -172,7 +177,7 @@ namespace MP3MediaPlayer {
     bool PlayMP3::isDone() const
     {
         // Check if the playback thread is done
-        return !playbackThread.joinable() || shouldStop;
+        return songFinished || !playbackThread.joinable() || shouldStop;
     }
 
     bool PlayMP3::isLoaded() const
@@ -183,6 +188,7 @@ namespace MP3MediaPlayer {
 
     void PlayMP3::stop()
     {
+        songFinished = true;
         if (playbackThread.joinable()) {
             // Signal thread to stop
             shouldStop = true;

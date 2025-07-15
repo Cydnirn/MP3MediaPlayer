@@ -6,6 +6,7 @@
 #include "Files.h"
 #include "Menu.h"
 #include "MP3MediaPlayer/PlayMP3.h"
+#include "PlaylistManager/PlaylistManager.h"
 
 void LibraryMenu(const std::unique_ptr<Menu>& menu,
                  const std::unique_ptr<Library>& library,
@@ -45,18 +46,14 @@ void LibraryMenu(const std::unique_ptr<Menu>& menu,
         std::cin >> libIndex;
         if (libIndex < 1 || libIndex > library->getMusicList().size()) {
             std::cout << "Invalid index! Please try again.\n";
-        } else {
+        }
+        else{
             // Add the selected music to the playlist
             const Music music = library->getMusicList().at(libIndex - 1);
             playlist->addMusic(music);
             std::cout << "Added to playlist: " << music.title << " by " << music.artist << "\n";
             std::cin.ignore();
             std::cin.get();
-        }
-        if (!player->isPlaying())
-        {
-            player->music(playlist->currentMusic()->music.path.c_str());
-            player->play();
         }
         break;
     case 5:
@@ -139,20 +136,7 @@ void PlaybackMenu(const std::unique_ptr<Menu>& menu,
     }
 }
 
-void ConsumePlaylist(const std::unique_ptr<Queue>& playlist, const std::unique_ptr<MP3MediaPlayer::PlayMP3>& player)
-{
-    if (!playlist->isEmpty()) {
-        if (const auto currentMusic = playlist->currentMusic(); currentMusic && !player->isPlaying())
-        {
-            player->music(currentMusic->music.path.c_str());
-            player->play();
-        }
-        if (player->isDone())
-        {
-            playlist->playNext();
-        }
-    }
-}
+
 
 int main()
 {
@@ -167,9 +151,11 @@ int main()
     bool sortYear = true,  sortName = true,
     start = true, musicMenu = false, playMenu = false, controlMenu = false;
 
+    PlaylistManager playlist_manager(playlist, player);
+
     while(start)
     {
-        ConsumePlaylist(playlist, player);
+        playlist_manager.start();
         menu->clearScreen();
             // Normal menu display
         std::cout << "___  ___       ___________ _                       \n";
@@ -220,6 +206,7 @@ int main()
         }
     }
     // Make sure to stop playback before exiting
+    playlist_manager.stop();
     player->stop();
     return 0;
 }

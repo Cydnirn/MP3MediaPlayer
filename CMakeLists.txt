@@ -11,6 +11,8 @@ find_package(taglib CONFIG REQUIRED)
 add_executable(MP3MediaPlayer src/main.cpp
         src/MP3MediaPlayer/PlayMP3.cpp
         src/MP3MediaPlayer/PlayMP3.h
+        src/PlaylistManager/PlaylistManager.cpp
+        src/PlaylistManager/PlaylistManager.h
         src/Files.cpp
         src/Files.h
         src/library.h
