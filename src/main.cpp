@@ -1,12 +1,48 @@
 #include <iostream>
 #include <string>
 #include <memory>
-#include <chrono>
 #include "queue.h"
 #include "library.h"
 #include "Files.h"
 #include "Menu.h"
 #include "PlayMP3.h"
+
+void LibraryMenu(const std::unique_ptr<Menu>& menu,
+    const std::unique_ptr<Library>& library,
+    bool& sortYear, bool& sortName, bool& musicMenu,
+    std::string& keyword, int& libChoice)
+{
+    menu->clearScreen();
+    menu->displayMusicList(library->getMusicList());
+    menu->displayMusicMenu(sortYear, sortName);
+    std::cin >> libChoice;
+    switch (libChoice)
+    {
+    case 1:
+        library->sortYear(sortYear);
+        sortYear = !sortYear;
+        break;
+    case 2:
+        library->sortHuruf(sortName);
+        sortName = !sortName;
+        break;
+    case 3:
+        std::cout << "Enter search keyword: ";
+        std::cin.ignore();
+        std::getline(std::cin, keyword);
+        menu->displayMusicSearch(std::move(library), keyword);
+        std::cin.ignore();
+        break;
+    case 5:
+        musicMenu = false;
+        break; // Back to main menu
+    default:
+        std::cout << "Invalid option. Press Enter to continue...";
+        std::cin.ignore();
+        std::cin.get();
+        break;
+    }
+}
 
 int main()
 {
@@ -16,87 +52,32 @@ int main()
     const auto menu = std::make_unique<Menu>();
     const std::vector<std::string> mp3Entry = files.findMp3("");
     library->setMusicList(files.getMusic(mp3Entry));
-    std::string keyword, filename;
-    std::string x,y;
-    int pos;
-    int choice = 0;
-    bool sortYear = true;
-    bool sortName = true;
-    bool start = true;
-    bool manual = false;
+    std::string keyword, filename, x,y;
+    int pos,  choice, libChoice;
+    bool sortYear = true,  sortName = true,
+    start = true, musicMenu = false, manual = false;
     std::string currentSong;
-    bool isPlaying = false;
 
     while(start)
     {
-#ifdef _WIN32
-        system("cls");
-#else
-        system("clear");
-#endif
+        menu->clearScreen();
             // Normal menu display
-        menu->displayMusicList(library->getMusicList());
-        menu->displayPlaylist(std::move(playlist));
-        if (manual)
+        std::cout << "\n====================    MP3 Player    ====================\n";
+        menu->displayMainMenu();
+        std::cin >> choice;
+        switch (choice)
         {
-            std::cout << "\n====================    Manual Menu    ====================\n";
-            std::cout << "| 1. Pause | 2. Stop | 3. Resume | 4. Exit Manual Mode |\n";
-            std::cout << "Current Song: " << currentSong << "\n";
-            std::cout << "Enter your choice: ";
-            std::cin >> choice;
-            switch (choice)
+        case 1:
+            // Display music library
+            musicMenu = true;
+            while (musicMenu)
             {
-            case 1:
-                player->pause();
-                std::cout << "Paused: " << currentSong << "\n";
-                break;
-            case 2:
-                player->stop();
-                isPlaying = false;
-                manual = false;
-                std::cout << "Stopped: " << currentSong << "\n";
-                currentSong.clear();
-                break;
-            case 3:
-                player->play();
-                isPlaying = true;
-                std::cout << "Resumed: " << currentSong << "\n";
-                break;
-            default:
-                std::cout << "Invalid Choice\n";
-                std::cout << "Press Enter to continue...";
-                std::cin.ignore();
-                std::cin.get();
-                break;
+                LibraryMenu(menu, std::move(library),
+                    sortYear, sortName, musicMenu,
+                    keyword, libChoice);
             }
-        } else
-        {
-            std::cout << "\n====================    Menu    ====================\n";
-            std::cout << "| 1.Sort Tahun | 2.Sort Nama | 3.Search Musik | \n "
-                         "4.Tambah Playlist | 5.Next Song | 6. Exit  | \n"
-                         "7. Play Manual | 8. Enter Manual Mode: ";
-            std::cin >> choice;
-            switch (choice)
-            {
-            case 1:
-                if (sortYear) {
-                    library->sortByYearDes();
-                    sortYear = !sortYear;
-                } else {
-                    library->sortByYearAsc();
-                    sortYear = !sortYear;
-                }
-                break;
-            case 2:
-                if (sortName) {
-                    library->sortByHurufDes();
-                    sortName = !sortName;
-                } else {
-                    library->sortByHurufAsc();
-                    sortName = !sortName;
-                }
-                break;
-            case 3:
+            break;
+        case 2:
                 // Handle search functionality if needed
                 std::cout << "Enter search keyword: ";
                 std::cin.ignore();
@@ -104,7 +85,7 @@ int main()
                 menu->displayMusicSearch(std::move(library), keyword);
                 std::cin.ignore();
                 break;
-            case 4:
+        case 4:
                 std::cout << "Enter the index number of the song: ";
                 std::cin.ignore();
                 std::cin >> pos;
@@ -120,7 +101,6 @@ int main()
                 try {
                     player->music(filename.c_str());
                     player->play();
-                    isPlaying = true;
                     currentSong = filename;
                     manual = true;
                 } catch (const std::exception& e) {
@@ -132,7 +112,7 @@ int main()
                 std::cin.get();
                 break;
             }
-        }
+
     }
 
     // Make sure to stop playback before exiting

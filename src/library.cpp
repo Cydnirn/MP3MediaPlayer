@@ -59,7 +59,7 @@ void Library::sortByHurufAsc() {
             swapped = true;
             }
         }
-            if (!swapped) break;
+        if (!swapped) break;
     }
 }
 
@@ -67,7 +67,7 @@ void Library::sortByHurufAsc() {
 
 void Library::sortByHurufDes() {
     const int size = musicList.size();
-    for (int i = 0; i < size -1; i++) {
+    for (int i = 0; i < size - 1; i++) {
         bool swapped = false;
         for (int j = 0; j < size - i - 1; j++) {
             if (musicList[j].title > musicList[j + 1].title) {
@@ -75,13 +75,13 @@ void Library::sortByHurufDes() {
             swapped = true;
             }
         }
-            if (!swapped) break;
+        if (!swapped) break;
     }
 }
 
 void Library::sortYear(bool desc) {
     if (desc) {
-        sortByHurufDes();
+        sortByYearDes();
     } else {
         sortByYearAsc();
     }

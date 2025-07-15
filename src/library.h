@@ -29,8 +29,8 @@ public:
     std::vector<Music> getMusicList() const;
     // Setter for musicList
     void setMusicList(const std::vector<Music>& list);
-    void sortYear(bool asc);
-    void sortHuruf(bool asc);
+    void sortYear(bool des);
+    void sortHuruf(bool des);
     //bool compareMusicByTitle(const Music &a, const Music &b);
     std::vector<Music> searchTitle(const std::string& keyword) const;
 };

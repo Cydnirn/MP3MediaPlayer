@@ -8,7 +8,7 @@
 
 void Menu::displayMainMenu() {
     std::cout << "\n====================    Menu    ====================\n";
-    std::cout << "| 1.See Library| 2.See Playlist | 3.Playback Control | 4. Exit";
+    std::cout << "| 1. See Library\n| 2. See Playlist \n| 3. Playback Control \n| 4. Exit\n";
 }
 void Menu::displayMusic(const Music& music)
 {
@@ -25,10 +25,29 @@ void Menu::displayMusicList(const std::vector<Music>& musicList)
         i++;
     }
 }
+void Menu::displayMusicMenu(bool& sortYear, bool& sortName)
+{
+    std::cout << "\n====================    Menu    ====================\n";
+    if (sortYear)
+    {
+        std::cout << "| 1. Sort by Year (A)\n";
+    } else
+    {
+        std::cout << "| 1. Sort by Year (V)\n";
+    }
+    if (sortName)
+    {
+        std::cout << "| 2. Sort by Title (Z-A)\n";
+    } else
+    {
+        std::cout << "| 2. Sort by Title (A-Z)\n";
+    }
+    std::cout << "| 3. Search Music\n| 4. Add to Playlist\n| 5. Back to Main Menu\n";
+}
 
 void Menu::displayMusicSearch(const std::unique_ptr<Library>& library, const std::string& keyword)
 {
-    auto musicList = library->searchTitle(keyword);
+    const auto musicList = library->searchTitle(keyword);
     std::cout << "\n====================    Search Results for \"" << keyword << "\"    ====================\n";
     if (musicList.empty())
     {
