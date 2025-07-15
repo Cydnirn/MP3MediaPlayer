@@ -202,6 +202,7 @@ namespace MP3MediaPlayer {
             std::lock_guard<std::mutex> lock(mutex);
             if (mh) {
                 mpg123_close(mh);
+                mh = nullptr; // Prevent double-close
             }
         }
     }
