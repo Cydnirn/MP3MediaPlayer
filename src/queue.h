@@ -33,7 +33,7 @@ public:
     int countList() const;
     void addMusic(const Music& music);
     void playlistIterate() const;
-    void playNext(bool skip = false);
+    void playNext();
     void removeMusic(int pos);
     MusicNode* currentMusic() const;
     void clearPlaylist();
