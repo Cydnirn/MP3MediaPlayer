@@ -9,8 +9,9 @@ bool Queue::isEmpty() const
     return head == nullptr;
 }
 
-int Queue::countList() {
-    bantu = head;
+int Queue::countList() const
+{
+    auto bantu = head;
     int jumlah = 0;
     while (bantu != nullptr) {
         jumlah++;
@@ -19,17 +20,9 @@ int Queue::countList() {
     return jumlah;
 }
 
-void Queue::addMusic(const uint64_t pos, const std::vector<Music>& Library)
+void Queue::addMusic(const Music& music)
 {
-    if (pos == 0 || pos > Library.size()) {
-        std::cout << "Invalid position! Please enter a position between 1 and " << Library.size() << std::endl;
-        std::cout << "Press Enter to continue...";
-        std::cin.ignore();
-        std::cin.get();
-        return;
-    }
-    auto it = Library.begin() + (pos - 1);
-    newNode =  new MusicNode(&(*it));
+    MusicNode *newNode = new MusicNode{music, nullptr};
     if (isEmpty()) {
         head=tail=newNode;
     } else {
@@ -38,12 +31,12 @@ void Queue::addMusic(const uint64_t pos, const std::vector<Music>& Library)
     }
 }
 
-void Queue::playlistIterate()
+void Queue::playlistIterate() const
 {
-    bantu = head;
+    MusicNode *bantu = head;
     int index = 1;
     while (bantu != nullptr) {
-        std::cout << index++ << "." << bantu->music->title << " - " << bantu->music->artist << std::endl;
+        std::cout << index++ << "." << bantu->music.title << " - " << bantu->music.artist << std::endl;
         bantu = bantu->next;
     }
 }
@@ -53,7 +46,7 @@ void Queue::playNext(bool skip) {
         std::cout << "Playlist kosong!" << std::endl;
         return;
     }
-    bantu = head;
+    MusicNode *bantu = head;
 
     head = head->next;
     delete bantu;
@@ -131,9 +124,9 @@ void Queue::addMusicAtPos(const int pos, const std::vector<Music>& Library,int l
         return;
     }
 
-    const auto it = Library.begin() + (libIndex - 1);
+    const auto it = Library.at(libIndex - 1);
     // Create a new node with the music reference
-    newNode =  new MusicNode(&(*it));
+    auto newNode =  new MusicNode(it);
     // Handle insertion at the beginning
     if (pos == 1) {
         newNode->next = head;
@@ -142,7 +135,7 @@ void Queue::addMusicAtPos(const int pos, const std::vector<Music>& Library,int l
     }
 
     // Find the node before the insertion point
-    bantu = head;
+    auto bantu = head;
     for (int i = 1; i < pos - 1; i++) {
         bantu = bantu->next;
     }

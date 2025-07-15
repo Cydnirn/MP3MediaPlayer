@@ -12,23 +12,15 @@ enum playStatus {
     paused
 };
 
-struct MusicNode
-{
-    Music& music;
-    MusicNode* next;
-    explicit MusicNode(Music& music) : music(music), next(nullptr) {}
-    explicit MusicNode(std::vector<Music>::const_reference value);
-};
 
 class Queue
 {
     struct MusicNode
     {
-        const Music* music;
+        Music music;
         MusicNode* next;
-        explicit MusicNode(const Music* music) : music(music), next(nullptr) {}
     };
-    MusicNode * head = nullptr, * tail = nullptr, * newNode = nullptr, * bantu = nullptr;
+    MusicNode * head = nullptr, * tail = nullptr;
 public:
     Queue()
     {
@@ -38,9 +30,9 @@ public:
         clearPlaylist();
     }
     bool isEmpty() const;
-    int countList();
-    void addMusic(uint64_t pos, const std::vector<Music>& Library);
-    void playlistIterate();
+    int countList() const;
+    void addMusic(const Music& music);
+    void playlistIterate() const;
     void playNext(bool skip = false);
     void removeMusic(int pos);
     MusicNode* currentMusic() const;

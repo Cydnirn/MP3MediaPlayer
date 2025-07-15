@@ -9,9 +9,12 @@
 
 void LibraryMenu(const std::unique_ptr<Menu>& menu,
     const std::unique_ptr<Library>& library,
+    const std::unique_ptr<Queue>& playlist,
+    const std::unique_ptr<MP3MediaPlayer::PlayMP3>& player,
     bool& sortYear, bool& sortName, bool& musicMenu,
     std::string& keyword, int& libChoice)
 {
+    uint64_t libIndex;
     menu->clearScreen();
     menu->displayMusicList(library->getMusicList());
     menu->displayMusicMenu(sortYear, sortName);
@@ -27,11 +30,28 @@ void LibraryMenu(const std::unique_ptr<Menu>& menu,
         sortName = !sortName;
         break;
     case 3:
+        menu->clearScreen();
         std::cout << "Enter search keyword: ";
         std::cin.ignore();
         std::getline(std::cin, keyword);
         menu->displayMusicSearch(std::move(library), keyword);
         std::cin.ignore();
+        break;
+    case 4:
+        menu->clearScreen();
+        menu->displayMusicList(library->getMusicList());
+        std::cout << "\n\nEnter the index number of the song to add to playlist: ";
+        std::cin >> libIndex;
+        if (libIndex < 1 || libIndex > library->getMusicList().size()) {
+            std::cout << "Invalid index! Please try again.\n";
+        } else {
+            // Add the selected music to the playlist
+            const Music music = library->getMusicList().at(libIndex - 1);
+            playlist->addMusic(music);
+            std::cout << "Added to playlist: " << music.title << " by " << music.artist << "\n";
+            std::cin.ignore();
+            std::cin.get();
+        }
         break;
     case 5:
         musicMenu = false;
@@ -45,10 +65,10 @@ void LibraryMenu(const std::unique_ptr<Menu>& menu,
 }
 
 void PlaylistMenu(const std::unique_ptr<Menu>& menu,
-    std::unique_ptr<Queue> playlist, int& playChoice, bool& playMenu)
+    const std::unique_ptr<Queue>& playlist, int& playChoice, bool& playMenu)
 {
     menu->clearScreen();
-    menu->displayPlaylist(std::move(playlist));
+    menu->displayPlaylist(playlist);
     std::cout << "| 1. Exit\n ";
     std::cin >> playChoice;
     switch (playChoice)
@@ -67,7 +87,7 @@ void PlaylistMenu(const std::unique_ptr<Menu>& menu,
 int main()
 {
     const auto player = std::make_unique<MP3MediaPlayer::PlayMP3>();
-    auto playlist = std::make_unique<Queue>();
+    const auto playlist = std::make_unique<Queue>();
     const auto library = std::make_unique<Library>();
     const auto menu = std::make_unique<Menu>();
     const std::vector<std::string> mp3Entry = files.findMp3("");
@@ -75,15 +95,20 @@ int main()
     std::string keyword, filename, x,y;
     int pos, choice, libChoice, playChoice;
     bool sortYear = true,  sortName = true,
-    start = true, musicMenu = false, playMenu = false,
-    manual = false;
-    std::string currentSong;
+    start = true, musicMenu = false, playMenu = false;
 
     while(start)
     {
         menu->clearScreen();
             // Normal menu display
-        std::cout << "\n====================    MP3 Player    ====================\n";
+        std::cout << "___  ___       ___________ _                       \n";
+        std::cout << "|  \\/  |      |____ | ___ \\ |                      \n";
+        std::cout << "| .  . |_ __      / / |_/ / | __ _ _   _  ___ _ __ \n";
+        std::cout << "| |\\/| | '_ \\     \\ \\  __/| |/ _` | | | |/ _ \\ '__|\n";
+        std::cout << "| |  | | |_) |.___/ / |   | | (_| | |_| |  __/ |   \n";
+        std::cout << "\\_|  |_/ .__/ \\____/\\_|   |_|\\__,_|\\__, |\\___|_|   \n";
+        std::cout << "       | |                          __/ |          \n";
+        std::cout << "       |_|                         |___/           \n";
         menu->displayMainMenu();
         std::cin >> choice;
         switch (choice)
@@ -93,7 +118,7 @@ int main()
             musicMenu = true;
             while (musicMenu)
             {
-                LibraryMenu(menu, std::move(library),
+                LibraryMenu(menu, library, playlist, player,
                     sortYear, sortName, musicMenu,
                     keyword, libChoice);
             }
@@ -102,15 +127,10 @@ int main()
             playMenu = true;
             while (playMenu)
             {
-                PlaylistMenu(menu, std::move(playlist), playChoice, playMenu);
+                PlaylistMenu(menu, playlist, playChoice, playMenu);
             }
+            break;
         case 4:
-                std::cout << "Enter the index number of the song: ";
-                std::cin.ignore();
-                std::cin >> pos;
-                playlist->addMusic(pos, library->getMusicList());
-                break;
-            case 6:
                 start = false;
                 break;
             case 7:
@@ -120,8 +140,6 @@ int main()
                 try {
                     player->music(filename.c_str());
                     player->play();
-                    currentSong = filename;
-                    manual = true;
                 } catch (const std::exception& e) {
                     std::cerr << "Error: " << e.what() << std::endl;
                 }

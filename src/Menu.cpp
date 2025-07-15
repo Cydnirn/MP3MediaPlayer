@@ -45,9 +45,9 @@ void Menu::displayMusicMenu(const bool& sortYear, const bool& sortName)
     std::cout << "| 3. Search Music\n| 4. Add to Playlist\n| 5. Back to Main Menu\n";
 }
 
-void Menu::displayMusicSearch(const std::unique_ptr<Library>& library, const std::string& keyword)
+void Menu::displayMusicSearch(const std::unique_ptr<Library>& lib, const std::string& keyword)
 {
-    const auto musicList = library->searchTitle(keyword);
+    const auto musicList = lib->searchTitle(keyword);
     std::cout << "\n====================    Search Results for \"" << keyword << "\"    ====================\n";
     if (musicList.empty())
     {
@@ -63,7 +63,7 @@ void Menu::displayMusicSearch(const std::unique_ptr<Library>& library, const std
     }
 }
 
-void Menu::displayPlaylist(std::unique_ptr<Queue> playlist)
+void Menu::displayPlaylist(const std::unique_ptr<Queue>& playlist)
 {
     std::cout << "===================== Playlist ====================\n";
     if (playlist->isEmpty()) {
@@ -80,7 +80,7 @@ void Menu::displayCurrentPlaying(std::unique_ptr<Queue> queue)
         return;
     }
     std::cout << "\n====================    Now Playing    ====================\n";
-    std::cout << "Now playing: " << queue->currentMusic()->music->title << " - "
-              << queue->currentMusic()->music->artist << std::endl;
+    std::cout << "Now playing: " << queue->currentMusic()->music.title << " - "
+              << queue->currentMusic()->music.artist << std::endl;
 }
 
