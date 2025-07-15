@@ -61,9 +61,9 @@ std::vector<musicLib> Files::getMusic(const std::vector<std::string> &mp3Entry)
         {
             TagLib::Tag *tag = file.tag();
             musicLib music;
-            music.title = tag->title().toCString(true);
-            music.artist = tag->artist().toCString(true);
-            music.year = tag->year();
+            music.title = tag->title().toCString(true) != nullptr ? tag->title().toCString(true) : "Unknown Title";
+            music.artist = tag->artist().toCString(true) != nullptr ? tag->artist().toCString(true) : "Unknown Artist";
+            music.year = tag->year() != 0 ? tag->year() : 0; // Use 0 if year is not set
             music.path = mp3;
             musicList.push_back(music);
         }
