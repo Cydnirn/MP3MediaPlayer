@@ -1,0 +1,30 @@
+{
+  "name" : "mp3mediaplayer",
+  "version-string" : "1.0.0",
+  "builtin-baseline" : "bffcbb75f71553824aa948a7e7b4f798662a6fa7",
+  "dependencies" : [ {
+    "name" : "jack2",
+    "version>=" : "1.9.22"
+  }, {
+    "name" : "portaudio",
+    "version>=" : "19.7#7"
+  }, {
+    "name" : "taglib",
+    "version>=" : "2.0.2"
+  }, {
+    "name" : "utfcpp",
+    "version>=" : "4.0.6"
+  }, {
+    "name" : "vcpkg-cmake-config",
+    "version>=" : "2024-05-23"
+  }, {
+    "name" : "vcpkg-cmake",
+    "version>=" : "2024-04-23"
+  }, {
+    "name" : "zlib",
+    "version>=" : "1.3.1"
+  }, {
+    "name" : "mpg123",
+    "version>=" : "1.32.9#1"
+  } ]
+}

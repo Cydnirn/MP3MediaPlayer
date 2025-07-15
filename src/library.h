@@ -5,20 +5,33 @@
 #ifndef LIBRARY_H
 #define LIBRARY_H
 #include <mpg123.h>
+#include <vector>
 
-struct musicLib {
+struct Music {
     std::string title, artist;
-    u_int year;
+    uint64_t year;
     std::string path;
 };
 
-bool compareMusicByTitle(const musicLib &a, const musicLib &b);
-void sortByYearDes(std::vector<musicLib>& musicList);
-void sortByYearAsc(std::vector<musicLib>& musicList);
-void sortByHurufAsc(std::vector<musicLib>& musicList);
-void sortByHurufDes(std::vector<musicLib>& musicList);
-void printMusic(const musicLib& music);
-void printMusicList(std::vector<musicLib>& musicList);
-void searchTitle(const std::vector<musicLib>& musicList, const std::string& keyword);
-
+class Library
+{
+    std::vector<Music> musicList;
+    void sortByYearDes();
+    void sortByYearAsc();
+    void sortByHurufAsc();
+    void sortByHurufDes();
+public:
+    Library(){};
+    ~Library()
+    {
+        musicList.clear();
+    };
+    std::vector<Music> getMusicList() const;
+    // Setter for musicList
+    void setMusicList(const std::vector<Music>& list);
+    void sortYear(bool des);
+    void sortHuruf(bool des);
+    //bool compareMusicByTitle(const Music &a, const Music &b);
+    std::vector<Music> searchTitle(const std::string& keyword) const;
+};
 #endif //LIBRARY_H

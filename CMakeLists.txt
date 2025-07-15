@@ -9,14 +9,24 @@ find_package(ZLIB REQUIRED)
 find_package(taglib CONFIG REQUIRED)
 
 add_executable(MP3MediaPlayer src/main.cpp
-        src/PlayMP3.cpp
-        src/PlayMP3.h
+        src/MP3MediaPlayer/PlayMP3.cpp
+        src/MP3MediaPlayer/PlayMP3.h
+        src/PlaylistManager/PlaylistManager.cpp
+        src/PlaylistManager/PlaylistManager.h
         src/Files.cpp
         src/Files.h
         src/library.h
         src/library.cpp
+        src/queue.h
+        src/queue.cpp
+        src/Menu.cpp
+        src/Menu.h
 )
 
 target_link_libraries(MP3MediaPlayer PRIVATE MPG123::libmpg123 MPG123::libout123 MPG123::libsyn123)
-target_link_libraries(MP3MediaPlayer PRIVATE portaudio_static)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    target_link_libraries(MP3MediaPlayer PRIVATE portaudio_static)
+else()
+    target_link_libraries(MP3MediaPlayer PRIVATE portaudio)
+endif()
 target_link_libraries(MP3MediaPlayer PRIVATE TagLib::tag TagLib::tag_c TagLib::TagLib)

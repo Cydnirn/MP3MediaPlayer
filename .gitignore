@@ -32,4 +32,4 @@
 *.app
 /.idea/editor.xml
 
-Test.cpp
+vcpkg_installed/*

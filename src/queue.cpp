@@ -1,99 +1,62 @@
 #include <iostream>
-#include <queue>
 #include <vector>
 #include <string>
+#include "queue.h"
 
-
-enum playStatus {
-    notPlaying,
-    playing,
-    paused
-};
-
-struct Music 
+bool Queue::isEmpty() const
 {
-    std::string title, artist;
-    int year;
-    Music* next;
-};
-
-Music *head, *tail, *newNode, *bantu;
-
-void awal() 
-{
-    head=NULL;
-} 
-
-bool isEmpty() 
-{
-    if (head == NULL) {
-        return true;
-    } else {
-        return false;
-    }
+    return head == nullptr;
 }
 
-int countList() {
-    bantu = head;
+int Queue::countList() const
+{
+    auto bantu = head;
     int jumlah = 0;
-    while (bantu != NULL) {
+    while (bantu != nullptr) {
         jumlah++;
         bantu = bantu->next;
     }
     return jumlah;
 }
 
-void addMusic(std::string title, std::string artist, int year) 
+void Queue::addMusic(const Music& music)
 {
-    newNode = new Music();
-    newNode->title = title;
-    newNode->artist = artist;
-    newNode->year = year;
-    newNode->next = NULL;
+    MusicNode *newNode = new MusicNode{music, nullptr};
     if (isEmpty()) {
         head=tail=newNode;
     } else {
         tail->next = newNode;
         tail = newNode;      
     }
-    std::cout << "Ditambahkan ke playlist " << title << " - " << artist << "\n\n";
 }
 
-void printPlaylist() 
+void Queue::playlistIterate() const
 {
-        std::cout << "===================== Playlist ====================\n";
-    if (isEmpty()) {
-        std::cout << "Playlist kosong!\n";
-        return;
-    }
-    bantu = head;
+    MusicNode *bantu = head;
     int index = 1;
-
-    while (bantu != NULL) {
-        std::cout << index++ << "." << bantu->title << " - " << bantu->artist << std::endl;
+    while (bantu != nullptr) {
+        std::cout << index++ << "." << bantu->music.title << " - " << bantu->music.artist << std::endl;
         bantu = bantu->next;
     }
 }
 
-void playNext() {
+void Queue::playNext(bool skip) {
     if (isEmpty()) {
         std::cout << "Playlist kosong!" << std::endl;
         return;
     }
-
-    bantu = head;
-    std::cout << "Selesai memutar : " << bantu->title << " - "<< bantu->artist <<std::endl;
+    MusicNode *bantu = head;
 
     head = head->next;
     delete bantu;
 
-    if (head == NULL) {
-        tail = NULL;
+    if (head == nullptr) {
+        tail = nullptr;
     }
 }
 
 
-void removeMusic(int pos) {
+void Queue::removeMusic(const int pos) {
   if(isEmpty()) {
     std::cout << "Playlist kosong!\n";
   }
@@ -104,29 +67,26 @@ void removeMusic(int pos) {
     return;
   }
 
-  Music *del;
+  MusicNode *del;
 
   if (pos == 1) {
     del = head;
-    std::cout << "Menghapus : " << del->title << " - " << del->artist << std::endl;
     head = head->next;
     delete del;
 
-    if (head == NULL) {
-        tail = NULL;
+    if (head == nullptr) {
+        tail = nullptr;
     }
 
     return;
   }
 
-  Music* prev = head;
+  MusicNode* prev = head;
   for(int i = 1; i < pos - 1; i++) {
     prev = prev->next;
   }
 
   del = prev->next;
-  std::cout<< "Menghapus : " << del->title << " - " << del->artist << std::endl;
-
   prev->next = del->next;
 
   if (del == tail) {
@@ -136,16 +96,56 @@ void removeMusic(int pos) {
   delete del;
 }
 
-void nowPlaying() {
-    if (head == NULL) {
-        std::cout << "\ntidak ada lagi musik di playlist.\n";
-    } else {
-        std::cout << "\nMemutarkan : " << head->title << " - " << head->artist << std::endl;
+Queue::MusicNode* Queue::currentMusic() const
+{
+    return head;
+}
+
+void Queue::clearPlaylist() {
+    while(!isEmpty()) {
+        playNext();
     }
 }
 
-void clearPlaylist() {
-    while(!isEmpty()) {
-        playNext();
+void Queue::addMusicAtPos(const int pos, const std::vector<Music>& Library,int libIndex) {
+    if (isEmpty()) {
+        std::cout << " Playlist Kosong!" << std::endl;
+        return;
+    }
+
+    if (int total = countList(); pos < 1 || pos > total) {
+        std::cout << "index tidak valid! Total Musik: " << total << std::endl;
+        return;
+    }
+
+    if (libIndex < 1 || libIndex > Library.size()) {
+        std::cout << "index tidak valid! Harus antara 1 dan" << Library.size() << std::endl;
+        return;
+    }
+
+    const auto it = Library.at(libIndex - 1);
+    // Create a new node with the music reference
+    auto newNode =  new MusicNode(it);
+    // Handle insertion at the beginning
+    if (pos == 1) {
+        newNode->next = head;
+        head = newNode;
+        return;
+    }
+
+    // Find the node before the insertion point
+    auto bantu = head;
+    for (int i = 1; i < pos - 1; i++) {
+        bantu = bantu->next;
+    }
+
+    // Insert the new node,
+    // reference the prev next node to the current node
+    newNode->next = bantu->next;
+    bantu->next = newNode;
+
+    // Update tail if we're inserting at the end
+    if (newNode->next == nullptr) {
+        tail = newNode;
     }
 }

@@ -9,6 +9,9 @@
 #include <memory>
 #include <iostream>
 #include <vector>
+#include <thread>
+#include <atomic>
+#include <mutex>
 
 namespace MP3MediaPlayer {
 //
@@ -26,11 +29,30 @@ namespace MP3MediaPlayer {
         PaStreamParameters param{};
         PaStream *stream{};
 
+        std::vector<float> floatBuffer;
+        std::vector<short> shortBuffer;
+
+        // Thread-related members
+        std::thread playbackThread;
+        std::atomic<bool> shouldStop{false};
+        std::atomic<bool> isPaused{false};
+        std::atomic<bool> songFinished{false};
+        std::mutex mutex;
+
     public:
         PlayMP3();
         ~PlayMP3();
         void music(const char *);
         void play();
+        void pause();
+        void stop();
+        bool isLoaded() const;
+        bool isDone() const;
+        bool isPlaying() const;
+
+    private:
+        // Private method for threaded playback
+        void playbackLoop();
     };
 }
 
