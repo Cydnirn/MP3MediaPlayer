@@ -46,11 +46,11 @@ namespace MP3MediaPlayer {
             throw std::runtime_error("Failed to get MP3 format");
         }
         //std::cout << "MP3 Format: " << rate << " Hz, " << channels << " channels, encoding: " << encoding << std::endl;
-        if (rate < 48000) {
+        if (rate < 48000)
+        {
             std::cerr << "Warning: Sample rate is below 48 kHz, which may affect audio quality." << std::endl;
             rate = 48000; // Ensure minimum sample rate
         }
-
         // Set up PortAudio stream parameters
         param.device = driver;
         param.channelCount = channels;
@@ -82,7 +82,7 @@ namespace MP3MediaPlayer {
 
         // Open stream with optimized settings
         {
-            std::lock_guard<std::mutex> lock(mutex);
+            std::lock_guard lock(mutex);
             err = Pa_OpenStream(
                     &stream,
                     nullptr,

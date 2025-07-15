@@ -45,5 +45,6 @@ public:
     void removeMusic(int pos);
     MusicNode* currentMusic() const;
     void clearPlaylist();
+    void updateMusic(int pos, const std::vector<Music>& Library,int libIndex);
 };
 #endif //QUEUE_H

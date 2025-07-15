@@ -114,3 +114,33 @@ void Queue::clearPlaylist() {
         playNext();
     }
 }
+
+void updateMusic(int pos, const std::vector<musicLib>& Library,int libIndex) {
+    if (isEmpty()) {
+        std::cout << " Playlist Kosong!" << std::endl;
+        return;
+    }
+
+    int total = countList();
+    if (pos < 1 || pos > total) {
+        std::cout << "index tidak valid! Total Musik: " << total << std::endl;
+        return;
+    }
+
+    if (libIndex < 1 || libIndex > Library.size()) {
+        std::cout << "index tidak valid! Harus antara 1 dan" << Library.size() << std::endl;
+        return;
+    }
+
+    bantu = head;
+    for (int i = 1; i < pos; i++) {
+        bantu = bantu->next;
+    }
+
+    bantu->title = Library[libIndex - 1].title;
+    bantu->artist = Library[libIndex - 1].artist;
+    bantu->year = Library[libIndex - 1].year;
+    bantu->path = Library[libIndex - 1].path;
+
+    std::cout << "Musik pada posisi " << pos << "berhasil diperbarui menjadi: " << bantu->title << " - " << bantu->artist << std::endl;
+}
