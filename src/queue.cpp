@@ -145,32 +145,71 @@ void clearPlaylist() {
     }
 }
 
-void updateMusic(int pos, const std::vector<musicLib>& Library,int libIndex) {
-    if (isEmpty()) {
-        std::cout << " Playlist Kosong!" << std::endl;
+void moveLeft(int pos) {
+    if ((isEmpty()) || pos <= 1 || pos > countList()) {
+    std::cout << "Posisi Tidak Valid untuk dipindahkan ke kiri!\n";
         return;
-    }
+        }
+    Music *prev = nullptr, *curr = head, *beforePrev = nullptr;
 
-    int total = countList();
-    if (pos < 1 || pos > total) {
-        std::cout << "index tidak valid! Total Musik: " << total << std::endl;
-        return;
-    }
-
-    if (libIndex < 1 || libIndex > Library.size()) {
-        std::cout << "index tidak valid! Harus antara 1 dan" << Library.size() << std::endl;
-        return;
-    }
-
-    bantu = head;
     for (int i = 1; i < pos; i++) {
-        bantu = bantu->next;
+        beforePrev = prev;
+        prev = curr;
+        curr = curr->next;
     }
 
-    bantu->title = Library[libIndex - 1].title;
-    bantu->artist = Library[libIndex - 1].artist;
-    bantu->year = Library[libIndex - 1].year;
-    bantu->path = Library[libIndex - 1].path;
+    if (beforePrev == nullptr) {
+        return;
+    }
 
-    std::cout << "Musik pada posisi " << pos << "berhasil diperbarui menjadi: " << bantu->title << " - " << bantu->artist << std::endl;
+    prev->next = curr->next;
+    curr->next = prev;
+
+    if (beforePrev != nullptr) {
+        beforePrev->next = curr;
+    } else {
+        head = curr;
+    }
+
+    if (prev->next != nullptr) {
+        tail = prev;
+    }
+
+    std::cout << "Memindahkan ke Kiri: " << curr->title << " - " << curr->artist << std::endl;
+}
+
+void moveRight(int pos) {
+    int total = countList();
+    if (isEmpty() || pos < 1 || pos >= total) {
+        std::cout << "Posisi tidak valid untuk dipindahkan ke kanan!\n";
+        return;
+    }
+
+    Music *prev = nullptr, *curr = head, *next = nullptr;
+
+    for (int i = 1; i < pos; i++) {
+        prev = curr;
+        curr = curr->next;
+    }
+
+    next = curr->next;
+
+    if (next == nullptr) {
+        return;
+    }
+
+    curr->next = next->next;
+    next->next = curr;
+
+    if (prev != nullptr) {
+        prev->next = next;
+    } else {
+        head = next;
+    }
+
+    if (curr->next == nullptr) {
+        tail = prev;
+    }
+
+    std::cout << "Memindah ke kanan: " << next->title << " - " << next->artist << std::endl;
 }

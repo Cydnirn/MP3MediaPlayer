@@ -14,7 +14,7 @@ int main()
     auto music = files.getMusic(mp3Entry);
     std::string keyword, filename;
     std::string x,y;
-    int pos;
+    int pos, subMenu;
     int menu = 0;
     bool sortYear = true;
     bool sortName = true;
@@ -126,9 +126,25 @@ int main()
                     std::cerr << "Error: " << e.what() << std::endl;
                 }
                 break;
+
+                case 8:
+                    std::cout << "Pindah Music ke \n1.Kiri \n2.Kanan";
+                    std::cout << "Masukkan Angka: ";
+                    std::cin >> subMenu;
+                    if (subMenu == 1) {
+                        std::cout << "Music pada Index keberapa yang ingin dipindah?";
+                        std::cin >> pos;
+                        moveLeft(pos);
+                    } else if (subMenu == 2) {
+                        std::cout << "Music pada Index keberapa yang ingin dipindah?";
+                        std::cin >> pos;
+                        moveRight(pos);
+                    } else {
+                        std::cout << "Invalid option. Press Enter to continue...";
+                    }
+
             default:
                 std::cout << "Invalid option. Press Enter to continue...";
-                std::cin.get();
                 break;
             }
         }
