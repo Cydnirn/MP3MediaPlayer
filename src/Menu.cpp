@@ -73,7 +73,7 @@ void Menu::displayPlaylist(const std::unique_ptr<Queue>& playlist)
     playlist->playlistIterate();
 }
 
-void Menu::displayCurrentPlaying(std::unique_ptr<Queue> queue)
+void Menu::displayCurrentPlaying(const std::unique_ptr<Queue>& queue)
 {
     if (const auto current = queue->currentMusic(); current == nullptr) {
         std::cout << "No music is currently playing.\n";
@@ -84,3 +84,15 @@ void Menu::displayCurrentPlaying(std::unique_ptr<Queue> queue)
               << queue->currentMusic()->music.artist << std::endl;
 }
 
+void Menu::displayPlaybackControl(const std::unique_ptr<MP3MediaPlayer::PlayMP3>& player)
+{
+    std::cout << "\n====================== Playback Control ===============\n";
+    if (player->isPlaying())
+    {
+        std::cout << "| 1. Pause ";
+    } else
+    {
+        std::cout << "| 1. Play ";
+    }
+    std::cout << "| 2. Stop | 3. Next | 4. Quit \n";
+}

@@ -45,10 +45,12 @@ namespace MP3MediaPlayer {
         void play();
         void pause();
         void stop();
+        bool isLoaded() const;
+        bool isDone() const;
         bool isPlaying() const;
 
     private:
-        // New private method for threaded playback
+        // Private method for threaded playback
         void playbackLoop();
     };
 }

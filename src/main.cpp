@@ -5,16 +5,17 @@
 #include "library.h"
 #include "Files.h"
 #include "Menu.h"
-#include "PlayMP3.h"
+#include "MP3MediaPlayer/PlayMP3.h"
 
 void LibraryMenu(const std::unique_ptr<Menu>& menu,
-    const std::unique_ptr<Library>& library,
-    const std::unique_ptr<Queue>& playlist,
-    const std::unique_ptr<MP3MediaPlayer::PlayMP3>& player,
-    bool& sortYear, bool& sortName, bool& musicMenu,
-    std::string& keyword, int& libChoice)
+                 const std::unique_ptr<Library>& library,
+                 const std::unique_ptr<Queue>& playlist,
+                 const std::unique_ptr<MP3MediaPlayer::PlayMP3>& player,
+                 bool& sortYear, bool& sortName, bool& musicMenu,
+                 std::string& keyword)
 {
     uint64_t libIndex;
+    int libChoice;
     menu->clearScreen();
     menu->displayMusicList(library->getMusicList());
     menu->displayMusicMenu(sortYear, sortName);
@@ -52,6 +53,11 @@ void LibraryMenu(const std::unique_ptr<Menu>& menu,
             std::cin.ignore();
             std::cin.get();
         }
+        if (!player->isPlaying())
+        {
+            player->music(playlist->currentMusic()->music.path.c_str());
+            player->play();
+        }
         break;
     case 5:
         musicMenu = false;
@@ -65,8 +71,9 @@ void LibraryMenu(const std::unique_ptr<Menu>& menu,
 }
 
 void PlaylistMenu(const std::unique_ptr<Menu>& menu,
-    const std::unique_ptr<Queue>& playlist, int& playChoice, bool& playMenu)
+    const std::unique_ptr<Queue>& playlist, bool& playMenu)
 {
+    int playChoice;
     menu->clearScreen();
     menu->displayPlaylist(playlist);
     std::cout << "| 1. Exit\n ";
@@ -84,6 +91,69 @@ void PlaylistMenu(const std::unique_ptr<Menu>& menu,
     }
 }
 
+void PlaybackMenu(const std::unique_ptr<Menu>& menu,
+    const std::unique_ptr<Queue>& playlist,
+    const std::unique_ptr<MP3MediaPlayer::PlayMP3>& player,
+    bool& controlMenu)
+{
+    menu->clearScreen();
+    menu->displayCurrentPlaying(playlist);
+    menu->displayPlaybackControl(player);
+    int controlChoice;
+    std::cin >> controlChoice;
+    switch (controlChoice)
+    {
+    case 1: // Play
+        if (!player->isLoaded())
+        {
+            player->music(playlist->currentMusic()->music.path.c_str());
+        }
+        if (!player->isPlaying() && !playlist->isEmpty())
+        {
+            player->play();
+        } else if (player->isPlaying())
+        {
+            player->pause();
+        }
+        break;
+    case 2: // Stop
+        player->stop();
+        break;
+    case 3: // Next
+        player->stop(); // Stop current playback before playing next
+        playlist->playNext();
+        if (!playlist->isEmpty() && playlist->currentMusic())
+        {
+            player->music(playlist->currentMusic()->music.path.c_str());
+            player->play();
+        }
+        break;
+    case 4: // Next
+        controlMenu = false;
+        break;
+    default:
+        std::cout << "Invalid option. Press Enter to continue...";
+        std::cin.ignore();
+        std::cin.get();
+        break;
+    }
+}
+
+void ConsumePlaylist(const std::unique_ptr<Queue>& playlist, const std::unique_ptr<MP3MediaPlayer::PlayMP3>& player)
+{
+    if (!playlist->isEmpty()) {
+        if (const auto currentMusic = playlist->currentMusic(); currentMusic && !player->isPlaying())
+        {
+            player->music(currentMusic->music.path.c_str());
+            player->play();
+        }
+        if (player->isDone())
+        {
+            playlist->playNext();
+        }
+    }
+}
+
 int main()
 {
     const auto player = std::make_unique<MP3MediaPlayer::PlayMP3>();
@@ -93,12 +163,13 @@ int main()
     const std::vector<std::string> mp3Entry = files.findMp3("");
     library->setMusicList(files.getMusic(mp3Entry));
     std::string keyword, filename, x,y;
-    int pos, choice, libChoice, playChoice;
+    int choice;
     bool sortYear = true,  sortName = true,
-    start = true, musicMenu = false, playMenu = false;
+    start = true, musicMenu = false, playMenu = false, controlMenu = false;
 
     while(start)
     {
+        ConsumePlaylist(playlist, player);
         menu->clearScreen();
             // Normal menu display
         std::cout << "___  ___       ___________ _                       \n";
@@ -120,37 +191,34 @@ int main()
             {
                 LibraryMenu(menu, library, playlist, player,
                     sortYear, sortName, musicMenu,
-                    keyword, libChoice);
+                    keyword);
             }
             break;
         case 2:
+            // Display playlist menu
             playMenu = true;
             while (playMenu)
             {
-                PlaylistMenu(menu, playlist, playChoice, playMenu);
+                PlaylistMenu(menu, playlist, playMenu);
+            }
+            break;
+        case 3:
+            // Display playback control menu
+            controlMenu = true;
+            while (controlMenu)
+            {
+                PlaybackMenu(menu, playlist, player, controlMenu);
             }
             break;
         case 4:
-                start = false;
-                break;
-            case 7:
-                std::cout << "Enter the path to the MP3 file: ";
-                std::cin.ignore();
-                std::getline(std::cin, filename);
-                try {
-                    player->music(filename.c_str());
-                    player->play();
-                } catch (const std::exception& e) {
-                    std::cerr << "Error: " << e.what() << std::endl;
-                }
-                break;
-            default:
-                std::cout << "Invalid option. Press Enter to continue...";
-                std::cin.get();
-                break;
-            }
+            start = false;
+            break;
+        default:
+            std::cout << "Invalid option. Press Enter to continue...";
+            std::cin.get();
+            break;
+        }
     }
-
     // Make sure to stop playback before exiting
     player->stop();
     return 0;

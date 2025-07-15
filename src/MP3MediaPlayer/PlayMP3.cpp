@@ -169,6 +169,18 @@ namespace MP3MediaPlayer {
         return playbackThread.joinable() && !isPaused;
     }
 
+    bool PlayMP3::isDone() const
+    {
+        // Check if the playback thread is done
+        return !playbackThread.joinable() || shouldStop;
+    }
+
+    bool PlayMP3::isLoaded() const
+    {
+        return mh != nullptr && mpg123_getformat(mh, nullptr, nullptr, nullptr) == MPG123_OK;
+    }
+
+
     void PlayMP3::stop()
     {
         if (playbackThread.joinable()) {
