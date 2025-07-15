@@ -4,33 +4,27 @@
 #include <string>
 #include "queue.h"
 
-Music *head, *tail, *newNode, *bantu;
-
-void awal() 
+void Queue::awal()
 {
-    head=NULL;
+    head = nullptr;
 } 
 
-bool isEmpty() 
+bool Queue::isEmpty() const
 {
-    if (head == NULL) {
-        return true;
-    } else {
-        return false;
-    }
+    return head == nullptr;
 }
 
-int countList() {
+int Queue::countList() {
     bantu = head;
     int jumlah = 0;
-    while (bantu != NULL) {
+    while (bantu != nullptr) {
         jumlah++;
         bantu = bantu->next;
     }
     return jumlah;
 }
 
-void addMusic(const uint64_t pos, const std::vector<musicLib>& Library)
+void Queue::addMusic(const uint64_t pos, const std::vector<Music>& Library)
 {
     if (pos == 0 || pos > Library.size()) {
         std::cout << "Invalid position! Please enter a position between 1 and " << Library.size() << std::endl;
@@ -39,24 +33,18 @@ void addMusic(const uint64_t pos, const std::vector<musicLib>& Library)
         std::cin.get();
         return;
     }
-    newNode = new Music();
-    newNode->title = Library[pos-1].title;
-    newNode->artist = Library[pos-1].artist;
-    newNode->year = Library[pos-1].year;
-    newNode->path = Library[pos-1].path;
-    newNode->next = NULL;
+    newNode = new MusicNode(Library.at(pos - 1));
     if (isEmpty()) {
         head=tail=newNode;
     } else {
         tail->next = newNode;
         tail = newNode;      
     }
-    std::cout << "Ditambahkan ke playlist " << newNode->title << " - " << newNode->artist << "\n\n";
 }
 
-void printPlaylist() 
+void Queue::playlistIterate()
 {
-        std::cout << "===================== Playlist ====================\n";
+    std::cout << "===================== Playlist ====================\n";
     if (isEmpty()) {
         std::cout << "Playlist kosong!\n";
         return;
@@ -64,31 +52,30 @@ void printPlaylist()
     bantu = head;
     int index = 1;
 
-    while (bantu != NULL) {
-        std::cout << index++ << "." << bantu->title << " - " << bantu->artist << std::endl;
+    while (bantu != nullptr) {
+        std::cout << index++ << "." << bantu->music.title << " - " << bantu->music.artist << std::endl;
         bantu = bantu->next;
     }
 }
 
-void playNext() {
+void Queue::playNext(bool skip) {
     if (isEmpty()) {
         std::cout << "Playlist kosong!" << std::endl;
         return;
     }
-
     bantu = head;
-    std::cout << "Selesai memutar : " << bantu->title << " - "<< bantu->artist <<std::endl;
+    std::cout << "Selesai memutar : " << bantu->music.title << " - "<< bantu->music.artist <<std::endl;
 
     head = head->next;
     delete bantu;
 
-    if (head == NULL) {
-        tail = NULL;
+    if (head == nullptr) {
+        tail = nullptr;
     }
 }
 
 
-void removeMusic(int pos) {
+void Queue::removeMusic(int pos) {
   if(isEmpty()) {
     std::cout << "Playlist kosong!\n";
   }
@@ -99,28 +86,28 @@ void removeMusic(int pos) {
     return;
   }
 
-  Music *del;
+  MusicNode *del;
 
   if (pos == 1) {
     del = head;
-    std::cout << "Menghapus : " << del->title << " - " << del->artist << std::endl;
+    std::cout << "Menghapus : " << del->music.title << " - " << del->music.artist << std::endl;
     head = head->next;
     delete del;
 
-    if (head == NULL) {
-        tail = NULL;
+    if (head == nullptr) {
+        tail = nullptr;
     }
 
     return;
   }
 
-  Music* prev = head;
+  MusicNode* prev = head;
   for(int i = 1; i < pos - 1; i++) {
     prev = prev->next;
   }
 
   del = prev->next;
-  std::cout<< "Menghapus : " << del->title << " - " << del->artist << std::endl;
+  std::cout<< "Menghapus : " << del->music.title << " - " << del->music.artist << std::endl;
 
   prev->next = del->next;
 
@@ -131,15 +118,15 @@ void removeMusic(int pos) {
   delete del;
 }
 
-void nowPlaying() {
-    if (head == NULL) {
+void Queue::nowPlaying() {
+    if (head == nullptr) {
         std::cout << "\ntidak ada lagi musik di playlist.\n";
     } else {
-        std::cout << "\nMemutarkan : " << head->title << " - " << head->artist << std::endl;
+        std::cout << "\nMemutarkan : " << head->music.title << " - " << head->music.artist << std::endl;
     }
 }
 
-void clearPlaylist() {
+void Queue::clearPlaylist() {
     while(!isEmpty()) {
         playNext();
     }
