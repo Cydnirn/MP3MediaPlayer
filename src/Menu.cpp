@@ -25,7 +25,7 @@ void Menu::displayMusicList(const std::vector<Music>& musicList)
         i++;
     }
 }
-void Menu::displayMusicMenu(bool& sortYear, bool& sortName)
+void Menu::displayMusicMenu(const bool& sortYear, const bool& sortName)
 {
     std::cout << "\n====================    Menu    ====================\n";
     if (sortYear)
@@ -67,7 +67,7 @@ void Menu::displayPlaylist(std::unique_ptr<Queue> playlist)
 {
     std::cout << "===================== Playlist ====================\n";
     if (playlist->isEmpty()) {
-        std::cout << "Playlist kosong!\n";
+        std::cout << "Playlist empty!\n";
         return;
     }
     playlist->playlistIterate();

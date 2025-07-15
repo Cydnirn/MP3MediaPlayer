@@ -115,14 +115,13 @@ void Queue::clearPlaylist() {
     }
 }
 
-void updateMusic(int pos, const std::vector<musicLib>& Library,int libIndex) {
+void Queue::addMusicAtPos(const int pos, const std::vector<Music>& Library,int libIndex) {
     if (isEmpty()) {
         std::cout << " Playlist Kosong!" << std::endl;
         return;
     }
 
-    int total = countList();
-    if (pos < 1 || pos > total) {
+    if (int total = countList(); pos < 1 || pos > total) {
         std::cout << "index tidak valid! Total Musik: " << total << std::endl;
         return;
     }
@@ -132,15 +131,29 @@ void updateMusic(int pos, const std::vector<musicLib>& Library,int libIndex) {
         return;
     }
 
+    const auto it = Library.begin() + (libIndex - 1);
+    // Create a new node with the music reference
+    newNode =  new MusicNode(&(*it));
+    // Handle insertion at the beginning
+    if (pos == 1) {
+        newNode->next = head;
+        head = newNode;
+        return;
+    }
+
+    // Find the node before the insertion point
     bantu = head;
-    for (int i = 1; i < pos; i++) {
+    for (int i = 1; i < pos - 1; i++) {
         bantu = bantu->next;
     }
 
-    bantu->title = Library[libIndex - 1].title;
-    bantu->artist = Library[libIndex - 1].artist;
-    bantu->year = Library[libIndex - 1].year;
-    bantu->path = Library[libIndex - 1].path;
+    // Insert the new node,
+    // reference the prev next node to the current node
+    newNode->next = bantu->next;
+    bantu->next = newNode;
 
-    std::cout << "Musik pada posisi " << pos << "berhasil diperbarui menjadi: " << bantu->title << " - " << bantu->artist << std::endl;
+    // Update tail if we're inserting at the end
+    if (newNode->next == nullptr) {
+        tail = newNode;
+    }
 }

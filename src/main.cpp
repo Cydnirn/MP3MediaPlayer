@@ -44,6 +44,26 @@ void LibraryMenu(const std::unique_ptr<Menu>& menu,
     }
 }
 
+void PlaylistMenu(const std::unique_ptr<Menu>& menu,
+    std::unique_ptr<Queue> playlist, int& playChoice, bool& playMenu)
+{
+    menu->clearScreen();
+    menu->displayPlaylist(std::move(playlist));
+    std::cout << "| 1. Exit\n ";
+    std::cin >> playChoice;
+    switch (playChoice)
+    {
+    case 1:
+        playMenu = false;
+        break;
+    default:
+        std::cout << "Invalid option. Press Enter to continue...";
+        std::cin.ignore();
+        std::cin.get();
+        break;
+    }
+}
+
 int main()
 {
     const auto player = std::make_unique<MP3MediaPlayer::PlayMP3>();
@@ -53,9 +73,10 @@ int main()
     const std::vector<std::string> mp3Entry = files.findMp3("");
     library->setMusicList(files.getMusic(mp3Entry));
     std::string keyword, filename, x,y;
-    int pos,  choice, libChoice;
+    int pos, choice, libChoice, playChoice;
     bool sortYear = true,  sortName = true,
-    start = true, musicMenu = false, manual = false;
+    start = true, musicMenu = false, playMenu = false,
+    manual = false;
     std::string currentSong;
 
     while(start)
@@ -78,13 +99,11 @@ int main()
             }
             break;
         case 2:
-                // Handle search functionality if needed
-                std::cout << "Enter search keyword: ";
-                std::cin.ignore();
-                std::getline(std::cin, keyword);
-                menu->displayMusicSearch(std::move(library), keyword);
-                std::cin.ignore();
-                break;
+            playMenu = true;
+            while (playMenu)
+            {
+                PlaylistMenu(menu, std::move(playlist), playChoice, playMenu);
+            }
         case 4:
                 std::cout << "Enter the index number of the song: ";
                 std::cin.ignore();
@@ -112,7 +131,6 @@ int main()
                 std::cin.get();
                 break;
             }
-
     }
 
     // Make sure to stop playback before exiting
