@@ -3,6 +3,8 @@
 #include <string>
 #include "library.h"
 
+#include <algorithm>
+
 #include "Menu.h"
 //#Sortir Tahun 0-9
 
@@ -77,12 +79,32 @@ void Library::sortByHurufDes() {
     }
 }
 
+void Library::sortYear(bool desc) {
+    if (desc) {
+        sortByHurufDes();
+    } else {
+        sortByYearAsc();
+    }
+}
+
+void Library::sortHuruf(bool desc) {
+    if (desc) {
+        sortByHurufDes();
+    } else {
+        sortByHurufAsc();
+    }
+}
+
 //Mencari musik berdasarkan judul
 std::vector<Music> Library::searchTitle(const std::string& keyword) const
 {
     std::vector<Music> result;
     for (const auto& music : musicList) {
-        if (music.title.find(keyword) != std::string::npos) {
+        std::string lowerTitle = music.title;
+        std::string lowerKeyword = keyword;
+        std::ranges::transform(lowerTitle, lowerTitle.begin(), ::tolower);
+        std::ranges::transform(lowerKeyword, lowerKeyword.begin(), ::tolower);
+        if (lowerTitle.find(lowerKeyword) != std::string::npos) {
             result.emplace_back(music);
         }
     }

@@ -5,6 +5,7 @@
 #ifndef LIBRARY_H
 #define LIBRARY_H
 #include <mpg123.h>
+#include <vector>
 
 struct Music {
     std::string title, artist;
@@ -15,6 +16,10 @@ struct Music {
 class Library
 {
     std::vector<Music> musicList;
+    void sortByYearDes();
+    void sortByYearAsc();
+    void sortByHurufAsc();
+    void sortByHurufDes();
 public:
     Library(){};
     ~Library()
@@ -24,11 +29,9 @@ public:
     std::vector<Music> getMusicList() const;
     // Setter for musicList
     void setMusicList(const std::vector<Music>& list);
+    void sortYear(bool asc);
+    void sortHuruf(bool asc);
     //bool compareMusicByTitle(const Music &a, const Music &b);
-    void sortByYearDes();
-    void sortByYearAsc();
-    void sortByHurufAsc();
-    void sortByHurufDes();
     std::vector<Music> searchTitle(const std::string& keyword) const;
 };
 #endif //LIBRARY_H
