@@ -5,17 +5,21 @@
 #include "queue.h"
 #include "library.h"
 #include "Files.h"
+#include "Menu.h"
 #include "PlayMP3.h"
 
 int main()
 {
     const auto player = std::make_unique<MP3MediaPlayer::PlayMP3>();
-    std::vector<std::string> mp3Entry = files.findMp3("");
-    auto music = files.getMusic(mp3Entry);
+    auto playlist = std::make_unique<Queue>();
+    const auto library = std::make_unique<Library>();
+    const auto menu = std::make_unique<Menu>();
+    const std::vector<std::string> mp3Entry = files.findMp3("");
+    library->setMusicList(files.getMusic(mp3Entry));
     std::string keyword, filename;
     std::string x,y;
     int pos;
-    int menu = 0;
+    int choice = 0;
     bool sortYear = true;
     bool sortName = true;
     bool start = true;
@@ -31,16 +35,16 @@ int main()
         system("clear");
 #endif
             // Normal menu display
-        printMusicList(music);
-        printPlaylist();
+        menu->displayMusicList(library->getMusicList());
+        menu->displayPlaylist(std::move(playlist));
         if (manual)
         {
             std::cout << "\n====================    Manual Menu    ====================\n";
             std::cout << "| 1. Pause | 2. Stop | 3. Resume | 4. Exit Manual Mode |\n";
             std::cout << "Current Song: " << currentSong << "\n";
             std::cout << "Enter your choice: ";
-            std::cin >> menu;
-            switch (menu)
+            std::cin >> choice;
+            switch (choice)
             {
             case 1:
                 player->pause();
@@ -71,24 +75,24 @@ int main()
             std::cout << "| 1.Sort Tahun | 2.Sort Nama | 3.Search Musik | \n "
                          "4.Tambah Playlist | 5.Next Song | 6. Exit  | \n"
                          "7. Play Manual | 8. Enter Manual Mode: ";
-            std::cin >> menu;
-            switch (menu)
+            std::cin >> choice;
+            switch (choice)
             {
             case 1:
                 if (sortYear) {
-                    sortByYearDes(music);
+                    library->sortByYearDes();
                     sortYear = !sortYear;
                 } else {
-                    sortByYearAsc(music);
+                    library->sortByYearAsc();
                     sortYear = !sortYear;
                 }
                 break;
             case 2:
                 if (sortName) {
-                    sortByHurufDes(music);
+                    library->sortByHurufDes();
                     sortName = !sortName;
                 } else {
-                    sortByHurufAsc(music);
+                    library->sortByHurufAsc();
                     sortName = !sortName;
                 }
                 break;
@@ -97,17 +101,14 @@ int main()
                 std::cout << "Enter search keyword: ";
                 std::cin.ignore();
                 std::getline(std::cin, keyword);
-                searchTitle(music, keyword);
+                menu->displayMusicSearch(std::move(library), keyword);
                 std::cin.ignore();
                 break;
             case 4:
                 std::cout << "Enter the index number of the song: ";
                 std::cin.ignore();
                 std::cin >> pos;
-                addMusic(pos, music);
-                break;
-            case 5:
-                playNext();
+                playlist->addMusic(pos, library->getMusicList());
                 break;
             case 6:
                 start = false;

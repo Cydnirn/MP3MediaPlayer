@@ -53,14 +53,14 @@ std::vector<std::string> Files::findMp3(const std::string& dir = "")
     return mp3Entry;
 }
 
-std::vector<musicLib> Files::getMusic(const std::vector<std::string> &mp3Entry)
+std::vector<Music> Files::getMusic(const std::vector<std::string> &mp3Entry)
 {
-    std::vector<musicLib> musicList;
+    std::vector<Music> musicList;
     for (const auto & mp3 : mp3Entry) {
         if (TagLib::FileRef file(mp3.c_str()); !file.isNull() && file.tag())
         {
             TagLib::Tag *tag = file.tag();
-            musicLib music;
+            Music music;
             music.title = tag->title().toCString(true) != nullptr ? tag->title().toCString(true) : "Unknown Title";
             music.artist = tag->artist().toCString(true) != nullptr ? tag->artist().toCString(true) : "Unknown Artist";
             music.year = tag->year() != 0 ? tag->year() : 0; // Use 0 if year is not set

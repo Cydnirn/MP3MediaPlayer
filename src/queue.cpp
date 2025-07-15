@@ -4,11 +4,6 @@
 #include <string>
 #include "queue.h"
 
-void Queue::awal()
-{
-    head = nullptr;
-} 
-
 bool Queue::isEmpty() const
 {
     return head == nullptr;
@@ -33,7 +28,8 @@ void Queue::addMusic(const uint64_t pos, const std::vector<Music>& Library)
         std::cin.get();
         return;
     }
-    newNode = new MusicNode(Library.at(pos - 1));
+    auto it = Library.begin() + (pos - 1);
+    newNode =  new MusicNode(&(*it));
     if (isEmpty()) {
         head=tail=newNode;
     } else {
@@ -44,16 +40,10 @@ void Queue::addMusic(const uint64_t pos, const std::vector<Music>& Library)
 
 void Queue::playlistIterate()
 {
-    std::cout << "===================== Playlist ====================\n";
-    if (isEmpty()) {
-        std::cout << "Playlist kosong!\n";
-        return;
-    }
     bantu = head;
     int index = 1;
-
     while (bantu != nullptr) {
-        std::cout << index++ << "." << bantu->music.title << " - " << bantu->music.artist << std::endl;
+        std::cout << index++ << "." << bantu->music->title << " - " << bantu->music->artist << std::endl;
         bantu = bantu->next;
     }
 }
@@ -64,7 +54,6 @@ void Queue::playNext(bool skip) {
         return;
     }
     bantu = head;
-    std::cout << "Selesai memutar : " << bantu->music.title << " - "<< bantu->music.artist <<std::endl;
 
     head = head->next;
     delete bantu;
@@ -75,7 +64,7 @@ void Queue::playNext(bool skip) {
 }
 
 
-void Queue::removeMusic(int pos) {
+void Queue::removeMusic(const int pos) {
   if(isEmpty()) {
     std::cout << "Playlist kosong!\n";
   }
@@ -90,7 +79,6 @@ void Queue::removeMusic(int pos) {
 
   if (pos == 1) {
     del = head;
-    std::cout << "Menghapus : " << del->music.title << " - " << del->music.artist << std::endl;
     head = head->next;
     delete del;
 
@@ -107,8 +95,6 @@ void Queue::removeMusic(int pos) {
   }
 
   del = prev->next;
-  std::cout<< "Menghapus : " << del->music.title << " - " << del->music.artist << std::endl;
-
   prev->next = del->next;
 
   if (del == tail) {
@@ -118,12 +104,9 @@ void Queue::removeMusic(int pos) {
   delete del;
 }
 
-void Queue::nowPlaying() {
-    if (head == nullptr) {
-        std::cout << "\ntidak ada lagi musik di playlist.\n";
-    } else {
-        std::cout << "\nMemutarkan : " << head->music.title << " - " << head->music.artist << std::endl;
-    }
+Queue::MusicNode* Queue::currentMusic() const
+{
+    return head;
 }
 
 void Queue::clearPlaylist() {

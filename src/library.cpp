@@ -2,9 +2,20 @@
 #include <vector>
 #include <string>
 #include "library.h"
+
+#include "Menu.h"
 //#Sortir Tahun 0-9
 
-void sortByYearDes(std::vector<musicLib>& musicList) {
+std::vector<Music> Library::getMusicList() const {
+    return musicList;
+}
+
+void Library::setMusicList(const std::vector<Music>& list)
+{
+    musicList = list;
+}
+
+void Library::sortByYearDes() {
     const int size = musicList.size();
     for (int i = 0; i < size - 1;i++) {
         bool swapped = false;
@@ -20,7 +31,7 @@ void sortByYearDes(std::vector<musicLib>& musicList) {
 
 //#Sortir Tahun 9-0
 
-void sortByYearAsc(std::vector<musicLib>& musicList) {
+void Library::sortByYearAsc() {
     const int size = musicList.size();
     for (int i = 0; i < size - 1;i++) {
         bool swapped = false;
@@ -36,7 +47,7 @@ void sortByYearAsc(std::vector<musicLib>& musicList) {
 
 //#Sortir Huruf Z-A
 
-void sortByHurufAsc(std::vector<musicLib>& musicList) {
+void Library::sortByHurufAsc() {
     const int size = musicList.size();
     for (int i = 0; i < size -1; i++) {
         bool swapped = false;
@@ -52,7 +63,7 @@ void sortByHurufAsc(std::vector<musicLib>& musicList) {
 
 //#Sortir Huruf A-Z
 
-void sortByHurufDes(std::vector<musicLib>& musicList) {
+void Library::sortByHurufDes() {
     const int size = musicList.size();
     for (int i = 0; i < size -1; i++) {
         bool swapped = false;
@@ -66,48 +77,14 @@ void sortByHurufDes(std::vector<musicLib>& musicList) {
     }
 }
 
-void printMusic(const musicLib& music) {
-std::cout << ". " << music.title << " - " << music.artist << ", release " << music.year << std::endl;
-}
-
-//##Display list musik
-
-void printMusicList(std::vector<musicLib>& musicList) {
-    int i = 1;
-    std::cout << "==================== Music List ====================\n";
-    for (const auto& music : musicList) {
-      std::cout << i;
-      printMusic(music);
-      i++;
-    }
-}
-
 //Mencari musik berdasarkan judul
-void searchTitle(const std::vector<musicLib>& musicList, const std::string& keyword) {
-    std::vector<musicLib> result;
+std::vector<Music> Library::searchTitle(const std::string& keyword) const
+{
+    std::vector<Music> result;
     for (const auto& music : musicList) {
         if (music.title.find(keyword) != std::string::npos) {
-            result.push_back(music);
+            result.emplace_back(music);
         }
     }
-
-    std::cout << "\nHasil pencarian judul \"" << keyword << "\":\n";
-    if (result.empty()) {
-        std::cout << "Tidak ditemukan lagu dengan judul tersebut.\n";
-    } else {
-        printMusicList(const_cast<std::vector<musicLib>&>(result));
-    }
-}
-
-//sample doang buat test output
-
-std::vector<musicLib> musicSample() {
-    musicLib music1 = {"Heaven and Back", "Chase Atlantic", 2022};
-    musicLib music2 = {"Castle of Glass", "Linkin Park", 2011};
-    musicLib music3 = {"Bloodline", "Ariana Grande", 2020};
-    musicLib music4 = {"8 Letters", "Why Don't we", 2018};
-
-    std::vector<musicLib> musicList = {music1, music2, music3, music4};
-
-    return {music1, music2, music3, music4};
+    return result;
 }

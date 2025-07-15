@@ -22,19 +22,28 @@ struct MusicNode
 
 class Queue
 {
+    struct MusicNode
+    {
+        const Music* music;
+        MusicNode* next;
+        explicit MusicNode(const Music* music) : music(music), next(nullptr) {}
+    };
     MusicNode * head = nullptr, * tail = nullptr, * newNode = nullptr, * bantu = nullptr;
-    void awal();
-    bool isEmpty() const;
+public:
+    Queue()
+    {
+        head = nullptr;
+    }
     ~Queue() {
         clearPlaylist();
     }
-public:
+    bool isEmpty() const;
     int countList();
-    void addMusic(const uint64_t pos, const std::vector<Music>& Library);
+    void addMusic(uint64_t pos, const std::vector<Music>& Library);
     void playlistIterate();
     void playNext(bool skip = false);
     void removeMusic(int pos);
-    void nowPlaying();
+    MusicNode* currentMusic() const;
     void clearPlaylist();
 };
 #endif //QUEUE_H
