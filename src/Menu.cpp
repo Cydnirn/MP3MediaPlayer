@@ -97,6 +97,9 @@ void Menu::displayPlaybackControl() const
     } else if (!player->isPlaying() && !playlist->isEmpty())
     {
         std::cout << "| 1. Play ";
+    } else
+    {
+        std::cout << "| 1. Play (No music in playlist) ";
     }
     std::cout << "| 2. Next | 3. Quit \n";
 }

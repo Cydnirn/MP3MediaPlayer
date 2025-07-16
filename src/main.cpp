@@ -119,10 +119,8 @@ void PlaybackMenu(const std::unique_ptr<Menu>& menu,
         break;
     case 2: // Next
         player->stop(); // Stop current playback before playing next
-        playlist->playNext();
-        if (!playlist->isEmpty() && playlist->currentMusic())
+        if (!playlist->isEmpty())
         {
-            player->music(playlist->currentMusic()->music.path.c_str());
             player->play();
         }
         break;
