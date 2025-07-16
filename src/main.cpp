@@ -67,16 +67,47 @@ void LibraryMenu(const std::unique_ptr<Menu>& menu,
 }
 
 void PlaylistMenu(const std::unique_ptr<Menu>& menu,
+    const std::unique_ptr<Queue>& playlist,
 bool& playMenu)
 {
-    int playChoice;
+    int playChoice, pos;
     menu->clearScreen();
     menu->displayPlaylist();
-    std::cout << "| 1. Exit\n ";
+    menu->displayPlaylistMenu();
     std::cin >> playChoice;
     switch (playChoice)
     {
-    case 1:
+    case 1: // Remove music from playlist
+        std::cout << "Enter the position of the music to remove: ";
+        std::cin >> pos;
+        if (pos < 2 || pos > playlist->countList()) {
+            std::cout << "Invalid position! Please try again.\n";
+        } else {
+            playlist->removeMusic(pos);
+            std::cout << "Music removed from playlist.\n";
+        }
+        break;
+    case 2: // Move music left in playlist
+        std::cout << "Enter the position of the music to move left: ";
+        std::cin >> pos;
+        if (pos <= 2 || pos > playlist->countList()) {
+            std::cout << "Invalid position! Please try again.\n";
+        } else {
+            playlist->moveLeft(pos);
+            std::cout << "Music moved left in playlist.\n";
+        }
+        break;
+    case 3: // Move music right in playlist
+        std::cout << "Enter the position of the music to move right: ";
+        std::cin >> pos;
+        if (pos < 2 || pos >= playlist->countList()) {
+            std::cout << "Invalid position! Please try again.\n";
+        } else {
+            playlist->moveRight(pos);
+            std::cout << "Music moved right in playlist.\n";
+        }
+        break;
+    case 4:
         playMenu = false;
         break;
     default:
@@ -189,7 +220,7 @@ int main()
             playMenu = true;
             while (playMenu)
             {
-                PlaylistMenu(menu, playMenu);
+                PlaylistMenu(menu, playlist, playMenu);
             }
             break;
         case 3:
