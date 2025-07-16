@@ -11,7 +11,6 @@
 void LibraryMenu(const std::unique_ptr<Menu>& menu,
                  const std::unique_ptr<Library>& library,
                  const std::unique_ptr<Queue>& playlist,
-                 const std::unique_ptr<MP3MediaPlayer::PlayMP3>& player,
                  bool& sortYear, bool& sortName, bool& musicMenu,
                  std::string& keyword)
 {
@@ -36,7 +35,7 @@ void LibraryMenu(const std::unique_ptr<Menu>& menu,
         std::cout << "Enter search keyword: ";
         std::cin.ignore();
         std::getline(std::cin, keyword);
-        menu->displayMusicSearch(std::move(library), keyword);
+        menu->displayMusicSearch(keyword);
         std::cin.ignore();
         break;
     case 4:
@@ -68,11 +67,11 @@ void LibraryMenu(const std::unique_ptr<Menu>& menu,
 }
 
 void PlaylistMenu(const std::unique_ptr<Menu>& menu,
-    const std::unique_ptr<Queue>& playlist, bool& playMenu)
+bool& playMenu)
 {
     int playChoice;
     menu->clearScreen();
-    menu->displayPlaylist(playlist);
+    menu->displayPlaylist();
     std::cout << "| 1. Exit\n ";
     std::cin >> playChoice;
     switch (playChoice)
@@ -91,41 +90,41 @@ void PlaylistMenu(const std::unique_ptr<Menu>& menu,
 void PlaybackMenu(const std::unique_ptr<Menu>& menu,
     const std::unique_ptr<Queue>& playlist,
     const std::unique_ptr<MP3MediaPlayer::PlayMP3>& player,
+    const std::unique_ptr<PlaylistManager>& playlist_manager,
     bool& controlMenu)
 {
     menu->clearScreen();
-    menu->displayCurrentPlaying(playlist);
-    menu->displayPlaybackControl(player);
+    menu->displayCurrentPlaying();
+    menu->displayPlaybackControl();
     int controlChoice;
     std::cin >> controlChoice;
     switch (controlChoice)
     {
     case 1: // Play
-        if (!player->isLoaded())
-        {
-            player->music(playlist->currentMusic()->music.path.c_str());
-        }
         if (!player->isPlaying() && !playlist->isEmpty())
         {
+            if (!playlist_manager->isRunning())
+            {
+                playlist_manager->start();
+            }
             player->play();
-        } else if (player->isPlaying())
+        } else if (player->isPlaying()) // Pause
         {
+            if (playlist_manager->isRunning())
+            {
+                playlist_manager->stop();
+            }
             player->pause();
         }
         break;
-    case 2: // Stop
-        player->stop();
-        break;
-    case 3: // Next
+    case 2: // Next
         player->stop(); // Stop current playback before playing next
-        playlist->playNext();
-        if (!playlist->isEmpty() && playlist->currentMusic())
+        if (!playlist->isEmpty())
         {
-            player->music(playlist->currentMusic()->music.path.c_str());
             player->play();
         }
         break;
-    case 4: // Next
+    case 3:// Quit
         controlMenu = false;
         break;
     default:
@@ -143,19 +142,25 @@ int main()
     const auto player = std::make_unique<MP3MediaPlayer::PlayMP3>();
     const auto playlist = std::make_unique<Queue>();
     const auto library = std::make_unique<Library>();
-    const auto menu = std::make_unique<Menu>();
+    const auto menu = std::make_unique<Menu>(playlist, library, player);
+    // Initialize Files and get the list of MP3 files
     const std::vector<std::string> mp3Entry = files.findMp3("");
     library->setMusicList(files.getMusic(mp3Entry));
+
+    // Initialize PlaylistManager with the playlist and player
+    const auto playlist_manager = std::make_unique<PlaylistManager>(playlist, player);
+
+    // Initialize the observer pattern
+    playlist->addObserver(menu.get());
+
     std::string keyword, filename, x,y;
     int choice;
     bool sortYear = true,  sortName = true,
     start = true, musicMenu = false, playMenu = false, controlMenu = false;
 
-    PlaylistManager playlist_manager(playlist, player);
-
+    playlist_manager->start();
     while(start)
     {
-        playlist_manager.start();
         menu->clearScreen();
             // Normal menu display
         std::cout << "___  ___       ___________ _                       \n";
@@ -175,7 +180,7 @@ int main()
             musicMenu = true;
             while (musicMenu)
             {
-                LibraryMenu(menu, library, playlist, player,
+                LibraryMenu(menu, library, playlist,
                     sortYear, sortName, musicMenu,
                     keyword);
             }
@@ -185,7 +190,7 @@ int main()
             playMenu = true;
             while (playMenu)
             {
-                PlaylistMenu(menu, playlist, playMenu);
+                PlaylistMenu(menu, playMenu);
             }
             break;
         case 3:
@@ -193,7 +198,7 @@ int main()
             controlMenu = true;
             while (controlMenu)
             {
-                PlaybackMenu(menu, playlist, player, controlMenu);
+                PlaybackMenu(menu, playlist, player, playlist_manager, controlMenu);
             }
             break;
         case 4:
@@ -206,7 +211,11 @@ int main()
         }
     }
     // Make sure to stop playback before exiting
-    playlist_manager.stop();
+    if (playlist_manager->isRunning())
+    {
+        playlist_manager->stop();
+    }
+    playlist->clearPlaylist();
     player->stop();
     return 0;
 }

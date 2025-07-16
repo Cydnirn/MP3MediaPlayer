@@ -49,7 +49,7 @@ namespace MP3MediaPlayer {
         if (rate < 48000)
         {
             std::cerr << "Warning: Sample rate is below 48 kHz, which may affect audio quality." << std::endl;
-            rate = 48000; // Ensure minimum sample rate
+            rate = Pa_GetDeviceInfo(driver)->defaultSampleRate; // Use device's default sample rate
         }
         // Set up PortAudio stream parameters
         param.device = driver;
@@ -79,8 +79,20 @@ namespace MP3MediaPlayer {
 
     void PlayMP3::playbackLoop() {
         // Use a smaller, fixed buffer size for lower latency
-        constexpr size_t frames = 1024; // Smaller buffer for reduced latency
-
+        // Calculate proper MP3 frame size based on bitrate and sample rate
+        long bitrate = 0;
+        mpg123_getformat(mh, &rate, &channels, &encoding); // Ensure we have current format
+        mpg123_frameinfo2 info;
+        if (mpg123_info2(mh, &info) == MPG123_OK)
+        {
+            bitrate = info.bitrate;
+        }else
+        {
+            bitrate = 128; // Default to 128 kbps if bitrate cannot be determined
+        }// Get bitrate in kbps
+        int padding = 0; // Would need mpg123 header analysis to determine padding
+        size_t frames = (144 * bitrate / rate) + padding;
+        frames = frames > 0 ? frames : 1024; // Fallback to 1024 if calculation fails
         // Open stream with optimized settings
         {
             std::lock_guard lock(mutex);
@@ -202,7 +214,6 @@ namespace MP3MediaPlayer {
             std::lock_guard<std::mutex> lock(mutex);
             if (mh) {
                 mpg123_close(mh);
-                mh = nullptr; // Prevent double-close
             }
         }
     }

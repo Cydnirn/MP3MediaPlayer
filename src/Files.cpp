@@ -5,6 +5,7 @@
 #include "Files.h"
 
 #include <filesystem>
+#include <iostream>
 #include <taglib/fileref.h>
 #include <taglib/tag.h>
 
@@ -59,9 +60,12 @@ std::vector<Music> Files::getMusic(const std::vector<std::string> &mp3Entry)
     for (const auto & mp3 : mp3Entry) {
         if (TagLib::FileRef file(mp3.c_str()); !file.isNull() && file.tag())
         {
-            TagLib::Tag *tag = file.tag();
+            const TagLib::Tag *tag = file.tag();
             Music music;
-            music.title = tag->title().toCString(true) != nullptr ? tag->title().toCString(true) : "Unknown Title";
+            std::string filename = std::filesystem::path(mp3).filename().string();
+            std::cout << "Processing file: " << filename << std::endl;
+            // Use TagLib to extract metadata
+            music.title = tag->title().toCString(true) != nullptr ? tag->title().toCString(true) : filename;
             music.artist = tag->artist().toCString(true) != nullptr ? tag->artist().toCString(true) : "Unknown Artist";
             music.year = tag->year() != 0 ? tag->year() : 0; // Use 0 if year is not set
             music.path = mp3;

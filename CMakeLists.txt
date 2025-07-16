@@ -13,6 +13,7 @@ add_executable(MP3MediaPlayer src/main.cpp
         src/MP3MediaPlayer/PlayMP3.h
         src/PlaylistManager/PlaylistManager.cpp
         src/PlaylistManager/PlaylistManager.h
+        src/PlaylistManager/MusicObserver.h
         src/Files.cpp
         src/Files.h
         src/library.h
@@ -21,6 +22,7 @@ add_executable(MP3MediaPlayer src/main.cpp
         src/queue.cpp
         src/Menu.cpp
         src/Menu.h
+
 )
 
 target_link_libraries(MP3MediaPlayer PRIVATE MPG123::libmpg123 MPG123::libout123 MPG123::libsyn123)

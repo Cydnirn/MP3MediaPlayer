@@ -24,6 +24,10 @@ public:
 
     void start();
 
+    bool isRunning() const {
+        return workerThread.joinable();
+    }
+
     void stop();
 
     ~PlaylistManager() {

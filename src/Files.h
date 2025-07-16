@@ -17,7 +17,7 @@ class Files {
 public:
     Files();
     std::vector<std::string> findMp3(const std::string& directory);
-    std::vector<Music> getMusic(const std::vector<std::string> &mp3Entry);
+    static std::vector<Music> getMusic(const std::vector<std::string> &mp3Entry);
 };
 
 inline Files files;
