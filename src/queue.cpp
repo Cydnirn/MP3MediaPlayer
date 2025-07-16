@@ -170,12 +170,12 @@ void Queue::addMusicAtPos(const int pos, const std::vector<Music>& Library,int l
     }
 }
 
-void moveLeft(int pos) {
+void Queue::moveLeft(const int pos) {
     if ((isEmpty()) || pos <= 1 || pos > countList()) {
-        std::cout << "Posisi Tidak Valid untuk dipindahkan ke kiri!\n";
+        std::cout << "Invalid position to be moved to the left!\n";
         return;
     }
-    Music *prev = nullptr, *curr = head, *beforePrev = nullptr;
+    MusicNode *prev = nullptr, *curr = head, *beforePrev = nullptr;
 
     for (int i = 1; i < pos; i++) {
         beforePrev = prev;
@@ -199,18 +199,16 @@ void moveLeft(int pos) {
     if (prev->next != nullptr) {
         tail = prev;
     }
-
-    std::cout << "Memindahkan ke Kiri: " << curr->title << " - " << curr->artist << std::endl;
 }
 
-void moveRight(int pos) {
+void Queue::moveRight(const int pos) {
     int total = countList();
     if (isEmpty() || pos < 1 || pos >= total) {
-        std::cout << "Posisi tidak valid untuk dipindahkan ke kanan!\n";
+        std::cout << "Invalid position to be moved to the right!\n";
         return;
     }
 
-    Music *prev = nullptr, *curr = head, *next = nullptr;
+    MusicNode *prev = nullptr, *curr = head, *next = nullptr;
 
     for (int i = 1; i < pos; i++) {
         prev = curr;
@@ -235,6 +233,4 @@ void moveRight(int pos) {
     if (curr->next == nullptr) {
         tail = prev;
     }
-
-    std::cout << "Memindah ke kanan: " << next->title << " - " << next->artist << std::endl;
 }
