@@ -7,6 +7,7 @@
 #include <iostream>
 
 void Menu::displayMainMenu() {
+    inNowPlaying = false;
     std::cout << "\n====================    Menu    ====================\n";
     std::cout << "| 1. See Library\n| 2. See Playlist \n| 3. Playback Control \n| 4. Exit\n";
 }
@@ -17,6 +18,7 @@ void Menu::displayMusic(const Music& music)
 
 void Menu::displayMusicList(const std::vector<Music>& musicList)
 {
+    inNowPlaying = true;
     int i = 1;
     std::cout << "\n====================    Music List    ====================\n";
     for (const auto& music : musicList) {
@@ -45,7 +47,7 @@ void Menu::displayMusicMenu(const bool& sortYear, const bool& sortName)
     std::cout << "| 3. Search Music\n| 4. Add to Playlist\n| 5. Back to Main Menu\n";
 }
 
-void Menu::displayMusicSearch(const std::unique_ptr<Library>& lib, const std::string& keyword)
+void Menu::displayMusicSearch(const std::string& keyword) const
 {
     const auto musicList = lib->searchTitle(keyword);
     std::cout << "\n====================    Search Results for \"" << keyword << "\"    ====================\n";
@@ -63,8 +65,9 @@ void Menu::displayMusicSearch(const std::unique_ptr<Library>& lib, const std::st
     }
 }
 
-void Menu::displayPlaylist(const std::unique_ptr<Queue>& playlist)
+void Menu::displayPlaylist()
 {
+    inNowPlaying = false;
     std::cout << "===================== Playlist ====================\n";
     if (playlist->isEmpty()) {
         std::cout << "Playlist empty!\n";
@@ -73,26 +76,37 @@ void Menu::displayPlaylist(const std::unique_ptr<Queue>& playlist)
     playlist->playlistIterate();
 }
 
-void Menu::displayCurrentPlaying(const std::unique_ptr<Queue>& queue)
+void Menu::displayCurrentPlaying()
 {
-    if (const auto current = queue->currentMusic(); current == nullptr) {
+    inNowPlaying = true;
+    if (const auto current = playlist->currentMusic(); current == nullptr) {
         std::cout << "No music is currently playing.\n";
         return;
     }
     std::cout << "\n====================    Now Playing    ====================\n";
-    std::cout << "Now playing: " << queue->currentMusic()->music.title << " - "
-              << queue->currentMusic()->music.artist << std::endl;
+    std::cout << "Now playing: " << playlist->currentMusic()->music.title << " - "
+              << playlist->currentMusic()->music.artist << std::endl;
 }
 
-void Menu::displayPlaybackControl(const std::unique_ptr<MP3MediaPlayer::PlayMP3>& player)
+void Menu::displayPlaybackControl() const
 {
     std::cout << "\n====================== Playback Control ===============\n";
     if (player->isPlaying())
     {
         std::cout << "| 1. Pause ";
-    } else
+    } else if (!player->isPlaying() && !playlist->isEmpty())
     {
         std::cout << "| 1. Play ";
     }
-    std::cout << "| 2. Stop | 3. Next | 4. Quit \n";
+    std::cout << "| 2. Next | 3. Quit \n";
+}
+
+void Menu::onMusicChanged()
+{
+    if (inNowPlaying)
+    {
+        clearScreen();
+        displayCurrentPlaying();
+        displayPlaybackControl();
+    }
 }

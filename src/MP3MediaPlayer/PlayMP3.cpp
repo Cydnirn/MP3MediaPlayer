@@ -49,7 +49,7 @@ namespace MP3MediaPlayer {
         if (rate < 48000)
         {
             std::cerr << "Warning: Sample rate is below 48 kHz, which may affect audio quality." << std::endl;
-            rate = 48000; // Ensure minimum sample rate
+            rate = Pa_GetDeviceInfo(driver)->defaultSampleRate; // Use device's default sample rate
         }
         // Set up PortAudio stream parameters
         param.device = driver;
@@ -202,7 +202,6 @@ namespace MP3MediaPlayer {
             std::lock_guard<std::mutex> lock(mutex);
             if (mh) {
                 mpg123_close(mh);
-                mh = nullptr; // Prevent double-close
             }
         }
     }

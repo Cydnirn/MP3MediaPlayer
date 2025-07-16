@@ -1,7 +1,25 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <algorithm>
 #include "queue.h"
+
+void Queue::addObserver(MusicObserver* observer)
+{
+    observers.push_back(observer);
+}
+
+void Queue::removeObserver(MusicObserver* observer)
+{
+    observers.erase(std::ranges::remove(observers, observer).begin(), observers.end());
+}
+
+void Queue::notifyObservers() const
+{
+    for (const auto& observer : observers) {
+        observer->onMusicChanged();
+    }
+}
 
 bool Queue::isEmpty() const
 {
@@ -40,7 +58,7 @@ void Queue::playlistIterate() const
     }
 }
 
-void Queue::playNext(bool skip) {
+void Queue::playNext() {
     if (isEmpty()) {
         std::cout << "Playlist kosong!" << std::endl;
         return;
@@ -53,6 +71,7 @@ void Queue::playNext(bool skip) {
     if (head == nullptr) {
         tail = nullptr;
     }
+    notifyObservers(); // Notify observers after playing the next music
 }
 
 

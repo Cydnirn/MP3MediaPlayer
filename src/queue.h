@@ -5,6 +5,7 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 #include "library.h"
+#include "PlaylistManager/MusicObserver.h"
 
 enum playStatus {
     notPlaying,
@@ -21,6 +22,7 @@ class Queue
         MusicNode* next;
     };
     MusicNode * head = nullptr, * tail = nullptr;
+    std::vector<MusicObserver*> observers;
 public:
     Queue()
     {
@@ -29,6 +31,9 @@ public:
     ~Queue() {
         clearPlaylist();
     }
+    void addObserver(MusicObserver *observer);
+    void removeObserver(MusicObserver *observer);
+    void notifyObservers() const;
     bool isEmpty() const;
     int countList() const;
     void addMusic(const Music& music);
