@@ -72,12 +72,114 @@ namespace MP3MediaPlayer {
 
         // Start a new thread for playback if not already running
         if (!playbackThread.joinable()) {
+#ifdef _WIN32
+            playbackThread = std::thread(&PlayMP3::playbackLoopNoResampling, this);
+#else
             playbackThread = std::thread(&PlayMP3::playbackLoop, this);
+#endif
         } else {
             // If thread is running but paused, unpause it
             isPaused = false;
         }
     }
+
+    void PlayMP3::playbackLoopNoResampling()
+    {
+        // Use a smaller, fixed buffer size for lower latency
+        // Calculate proper MP3 frame size based on bitrate and sample rate
+        long bitrate = 0;
+        mpg123_getformat(mh, &rate, &channels, &encoding); // Ensure we have current format
+        mpg123_frameinfo2 info;
+        if (mpg123_info2(mh, &info) == MPG123_OK)
+        {
+            bitrate = info.bitrate;
+        }else
+        {
+            bitrate = 128; // Default to 128 kbps if bitrate cannot be determined
+        }// Get bitrate in kbps
+        int padding = 0; // Would need mpg123 header analysis to determine padding
+        size_t frames = (144 * bitrate / rate) + padding;
+        frames = frames > 0 ? frames : 1024; // Fallback to 1024 if calculation fails
+        // Open stream with optimized settings
+        {
+            std::lock_guard lock(mutex);
+            err = Pa_OpenStream(
+                    &stream,
+                    nullptr,
+                    &param,
+                    rate,
+                    frames,
+                    paClipOff,
+                    nullptr,
+                    nullptr
+            );
+
+            if (err != paNoError) {
+                std::cerr << "Failed to open PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
+                return;
+            }
+
+            err = Pa_StartStream(stream);
+            if (err != paNoError) {
+                std::cerr << "Failed to start PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
+                return;
+            }
+        }
+
+        // Allocate buffers
+        floatBuffer.resize(frames * channels);
+        shortBuffer.resize(frames * channels);
+
+        // Read and write loop with more efficient processing
+        while (!shouldStop) {
+            if (isPaused) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                continue;
+            }
+
+            // Read directly into the short buffer
+            size_t bytesToRead = shortBuffer.size() * sizeof(short);
+            if (mpg123_read(mh, reinterpret_cast<unsigned char*>(shortBuffer.data()),
+                            bytesToRead, &done) != MPG123_OK) {
+                songFinished = true;
+                break;
+            }
+
+            // Calculate actual frames read
+            const size_t framesRead = done / (sizeof(short) * channels);
+            if (framesRead == 0) {
+                songFinished = true;
+                break;
+            };
+
+            // Convert samples more efficiently
+            for (size_t i = 0; i < framesRead * channels; ++i) {
+                floatBuffer[i] = static_cast<float>(shortBuffer[i]) / 32768.0f;
+            }
+
+            // Write data to stream
+            err = Pa_WriteStream(stream, floatBuffer.data(), framesRead);
+            if (err != paNoError) {
+                std::cerr << "Failed to write to stream: " << Pa_GetErrorText(err) << std::endl;
+                break;
+            }
+        }
+
+        // Clean up stream
+        std::lock_guard<std::mutex> lock(mutex);
+        if (stream) {
+            err = Pa_StopStream(stream);
+            if (err != paNoError) {
+                std::cerr << "Failed to stop PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
+            }
+            err = Pa_CloseStream(stream);
+            if (err != paNoError) {
+                std::cerr << "Failed to close PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
+            }
+            stream = nullptr;
+        }
+    }
+
 
     void PlayMP3::playbackLoop() {
         const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(param.device);

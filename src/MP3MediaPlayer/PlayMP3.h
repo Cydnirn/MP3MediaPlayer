@@ -29,6 +29,11 @@ namespace MP3MediaPlayer {
         PaStreamParameters param{};
         PaStream *stream{};
 
+        // For no resampling
+        std::vector<float> floatBuffer; // Buffer for PortAudio
+        std::vector<short> shortBuffer; // Buffer for reading samples from mpg123
+
+        // For resampling
         std::vector<float> inputBuffer; // Input buffer for PortAudio
         std::vector<short> outputBuffer; // Buffer for reading samples from mpg123
         std::vector<float> resampledBuffer; // Buffer for resampled output
@@ -54,6 +59,7 @@ namespace MP3MediaPlayer {
     private:
         // Private method for threaded playback
         void playbackLoop();
+        void playbackLoopNoResampling();
     };
 }
 
