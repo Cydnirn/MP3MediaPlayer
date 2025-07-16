@@ -79,8 +79,20 @@ namespace MP3MediaPlayer {
 
     void PlayMP3::playbackLoop() {
         // Use a smaller, fixed buffer size for lower latency
-        constexpr size_t frames = 1024; // Smaller buffer for reduced latency
-
+        // Calculate proper MP3 frame size based on bitrate and sample rate
+        long bitrate = 0;
+        mpg123_getformat(mh, &rate, &channels, &encoding); // Ensure we have current format
+        mpg123_frameinfo2 info;
+        if (mpg123_info2(mh, &info) == MPG123_OK)
+        {
+            bitrate = info.bitrate;
+        }else
+        {
+            bitrate = 128; // Default to 128 kbps if bitrate cannot be determined
+        }// Get bitrate in kbps
+        int padding = 0; // Would need mpg123 header analysis to determine padding
+        size_t frames = (144 * bitrate / rate) + padding;
+        frames = frames > 0 ? frames : 1024; // Fallback to 1024 if calculation fails
         // Open stream with optimized settings
         {
             std::lock_guard lock(mutex);
