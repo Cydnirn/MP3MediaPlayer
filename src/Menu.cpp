@@ -76,6 +76,14 @@ void Menu::displayPlaylist()
     playlist->playlistIterate();
 }
 
+void Menu::displayPlaylistMenu()
+{
+    inNowPlaying = false;
+    std::cout << "\n====================    Playlist Menu    ====================\n";
+    std::cout << "| 1. Remove Music\n| 2. Move Music Left\n| 3. Move Music Right\n| 4. Back to Main Menu\n";
+}
+
+
 void Menu::displayCurrentPlaying()
 {
     inNowPlaying = true;

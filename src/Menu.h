@@ -39,6 +39,7 @@ public:
     static void displayMusicMenu(const bool& sortYear, const bool& sortName);
     void displayMusicSearch(const std::string& keyword) const;
     void displayPlaylist();
+    void displayPlaylistMenu();
     void displayCurrentPlaying();
     void displayPlaybackControl() const;
     void onMusicChanged() override;
