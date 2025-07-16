@@ -93,7 +93,7 @@ void PlaybackMenu(const std::unique_ptr<Menu>& menu,
     const std::unique_ptr<PlaylistManager>& playlist_manager,
     bool& controlMenu)
 {
-    //menu->clearScreen();
+    menu->clearScreen();
     menu->displayCurrentPlaying();
     menu->displayPlaybackControl();
     int controlChoice;
@@ -118,11 +118,12 @@ void PlaybackMenu(const std::unique_ptr<Menu>& menu,
         }
         break;
     case 2: // Next
-        player->stop(); // Stop current playback before playing next
-        if (!playlist->isEmpty())
-        {
-            player->play();
-        }
+        // Always stop the manager and player before moving to next track
+        playlist_manager->stop();
+        player->stop();
+        playlist->playNext();
+        // Always restart the playlist manager
+        playlist_manager->start();
         break;
     case 3:// Quit
         controlMenu = false;
