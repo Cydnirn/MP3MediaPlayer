@@ -93,7 +93,7 @@ void PlaybackMenu(const std::unique_ptr<Menu>& menu,
     const std::unique_ptr<PlaylistManager>& playlist_manager,
     bool& controlMenu)
 {
-    menu->clearScreen();
+    //menu->clearScreen();
     menu->displayCurrentPlaying();
     menu->displayPlaybackControl();
     int controlChoice;

@@ -65,8 +65,14 @@ std::vector<Music> Files::getMusic(const std::vector<std::string> &mp3Entry)
             std::string filename = std::filesystem::path(mp3).filename().string();
             std::cout << "Processing file: " << filename << std::endl;
             // Use TagLib to extract metadata
-            music.title = tag->title().toCString(true) != nullptr ? tag->title().toCString(true) : filename;
-            music.artist = tag->artist().toCString(true) != nullptr ? tag->artist().toCString(true) : "Unknown Artist";
+            auto getTagString = [](const TagLib::String& tagStr, const std::string& defaultValue) -> std::string {
+                const char* cstr = tagStr.toCString(true);
+                std::string result = (cstr != nullptr && cstr[0] != '\0') ? cstr : defaultValue;
+                return result;
+            };
+
+            music.title = getTagString(tag->title(), filename);
+            music.artist = getTagString(tag->artist(), "Unknown Artist");
             music.year = tag->year() != 0 ? tag->year() : 0; // Use 0 if year is not set
             music.path = mp3;
             musicList.push_back(music);
