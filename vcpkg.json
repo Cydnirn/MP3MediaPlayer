@@ -26,5 +26,8 @@
   }, {
     "name" : "mpg123",
     "version>=" : "1.32.9#1"
+  }, {
+    "name" : "libsamplerate",
+    "version>=" : "0.2.2#1"
   } ]
 }
