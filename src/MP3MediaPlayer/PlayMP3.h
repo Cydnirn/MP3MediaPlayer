@@ -29,8 +29,9 @@ namespace MP3MediaPlayer {
         PaStreamParameters param{};
         PaStream *stream{};
 
-        std::vector<float> floatBuffer;
-        std::vector<short> shortBuffer;
+        std::vector<float> inputBuffer; // Input buffer for PortAudio
+        std::vector<short> outputBuffer; // Buffer for reading samples from mpg123
+        std::vector<float> resampledBuffer; // Buffer for resampled output
 
         // Thread-related members
         std::thread playbackThread;

@@ -23,6 +23,7 @@ add_executable(MP3MediaPlayer src/main.cpp
         src/queue.cpp
         src/Menu.cpp
         src/Menu.h
+        src/MP3MediaPlayer/PlayMP3.cpp
 
 )
 
