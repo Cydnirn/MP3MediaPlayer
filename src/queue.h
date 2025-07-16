@@ -43,5 +43,7 @@ public:
     MusicNode* currentMusic() const;
     void clearPlaylist();
     void addMusicAtPos(int pos, const std::vector<Music>& Library,int libIndex);
+    void moveLeft(int pos);
+    void moveRight(int pos);
 };
 #endif //QUEUE_H

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <queue>
 #include <vector>
 #include <string>
 #include <algorithm>
@@ -167,4 +168,73 @@ void Queue::addMusicAtPos(const int pos, const std::vector<Music>& Library,int l
     if (newNode->next == nullptr) {
         tail = newNode;
     }
+}
+
+void moveLeft(int pos) {
+    if ((isEmpty()) || pos <= 1 || pos > countList()) {
+        std::cout << "Posisi Tidak Valid untuk dipindahkan ke kiri!\n";
+        return;
+    }
+    Music *prev = nullptr, *curr = head, *beforePrev = nullptr;
+
+    for (int i = 1; i < pos; i++) {
+        beforePrev = prev;
+        prev = curr;
+        curr = curr->next;
+    }
+
+    if (beforePrev == nullptr) {
+        return;
+    }
+
+    prev->next = curr->next;
+    curr->next = prev;
+
+    if (beforePrev != nullptr) {
+        beforePrev->next = curr;
+    } else {
+        head = curr;
+    }
+
+    if (prev->next != nullptr) {
+        tail = prev;
+    }
+
+    std::cout << "Memindahkan ke Kiri: " << curr->title << " - " << curr->artist << std::endl;
+}
+
+void moveRight(int pos) {
+    int total = countList();
+    if (isEmpty() || pos < 1 || pos >= total) {
+        std::cout << "Posisi tidak valid untuk dipindahkan ke kanan!\n";
+        return;
+    }
+
+    Music *prev = nullptr, *curr = head, *next = nullptr;
+
+    for (int i = 1; i < pos; i++) {
+        prev = curr;
+        curr = curr->next;
+    }
+
+    next = curr->next;
+
+    if (next == nullptr) {
+        return;
+    }
+
+    curr->next = next->next;
+    next->next = curr;
+
+    if (prev != nullptr) {
+        prev->next = next;
+    } else {
+        head = next;
+    }
+
+    if (curr->next == nullptr) {
+        tail = prev;
+    }
+
+    std::cout << "Memindah ke kanan: " << next->title << " - " << next->artist << std::endl;
 }
