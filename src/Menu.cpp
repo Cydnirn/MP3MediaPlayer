@@ -18,7 +18,7 @@ void Menu::displayMusic(const Music& music)
 
 void Menu::displayMusicList(const std::vector<Music>& musicList)
 {
-    inNowPlaying = true;
+    inNowPlaying = false;
     int i = 1;
     std::cout << "\n====================    Music List    ====================\n";
     for (const auto& music : musicList) {

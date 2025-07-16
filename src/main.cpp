@@ -103,26 +103,24 @@ void PlaybackMenu(const std::unique_ptr<Menu>& menu,
     case 1: // Play
         if (!player->isPlaying() && !playlist->isEmpty())
         {
-            if (!playlist_manager->isRunning())
-            {
-                playlist_manager->start();
-            }
             player->play();
+            //playlist_manager->stop();
         } else if (player->isPlaying()) // Pause
         {
-            if (playlist_manager->isRunning())
-            {
-                playlist_manager->stop();
-            }
+            //playlist_manager->stop();
             player->pause();
         }
         break;
     case 2: // Next
-        // Always stop the manager and player before moving to next track
-        playlist_manager->stop();
+        playlist_manager->stop(); // Stop the current playback to allow the next song to play
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
         player->stop();
         playlist->playNext();
-        // Always restart the playlist manager
+        if (const auto nextMusic = playlist->currentMusic(); nextMusic)
+        {
+            player->music(nextMusic->music.path.c_str());
+            player->play();
+        }
         playlist_manager->start();
         break;
     case 3:// Quit

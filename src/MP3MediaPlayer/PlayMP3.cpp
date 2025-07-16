@@ -47,12 +47,6 @@ namespace MP3MediaPlayer {
             std::cerr << "Failed to get MP3 format: " << mpg123_strerror(mh) << std::endl;
             throw std::runtime_error("Failed to get MP3 format");
         }
-        if (const int forceResample =  mpg123_param(mh, MPG123_FORCE_RATE, deviceInfo->defaultSampleRate, 0.0); forceResample != MPG123_OK) {
-            std::cerr << "Failed to set MP3 rate: " << mpg123_strerror(mh) << std::endl;
-            throw std::runtime_error("Failed to set MP3 rate");
-        }
-        mpg123_getformat(mh, &rate, &channels, &encoding);
-        std::cout << "Resampled output format: " << rate << " Hz, " << channels << " channels" << std::endl;
         //std::cout << "MP3 Format: " << rate << " Hz, " << channels << " channels, encoding: " << encoding << std::endl;
         if (rate < deviceInfo->defaultSampleRate)
         {
@@ -87,13 +81,13 @@ namespace MP3MediaPlayer {
 
     void PlayMP3::playbackLoop() {
         const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(param.device);
-        double deviceSampleRate = deviceInfo->defaultSampleRate;
+        const double deviceSampleRate = deviceInfo->defaultSampleRate;
         // Use a smaller, fixed buffer size for lower latency
         // Calculate proper MP3 frame size based on bitrate and sample rate
         long bitrate = 0;
         mpg123_getformat(mh, &rate, &channels, &encoding); // Ensure we have current format
-        mpg123_format_none(mh); // Reset format to allow reformatting
-        mpg123_format(mh, rate, channels, MPG123_ENC_FLOAT_32); // Set desired output format
+        // mpg123_format_none(mh); // Reset format to allow reformatting
+        // mpg123_format(mh, rate, channels, MPG123_ENC_FLOAT_32); // Set desired output format
 
         // Initiate libsamplerate
         int error;
@@ -103,7 +97,7 @@ namespace MP3MediaPlayer {
             return;
         }
         // Calculate resampling ratio
-        mpg123_frameinfo2 info{};
+        mpg123_frameinfo2 info;
         const double resampleRatio = deviceSampleRate / static_cast<double>(rate);
         if (mpg123_info2(mh, &info) == MPG123_OK)
         {
@@ -112,7 +106,7 @@ namespace MP3MediaPlayer {
         {
             bitrate = 128; // Default to 128 kbps if bitrate cannot be determined
         }// Get bitrate in kbps
-        int padding = 0; // Would need mpg123 header analysis to determine padding
+        const int padding = 0; // Would need mpg123 header analysis to determine padding
         size_t frames = (144 * bitrate * 1000 / rate) + padding;
         frames = frames > 0 ? frames : 1024; // Fallback to 1024 if calculation fails
        // Open stream with optimized settings
@@ -177,7 +171,7 @@ namespace MP3MediaPlayer {
 
             // Convert samples from short to float format for resampling
             for (size_t i = 0; i < framesRead * channels; ++i) {
-                inputBuffer[i] = static_cast<float>(outputBuffer[i]) / 32768.0f;
+                inputBuffer[i] = static_cast<float>(outputBuffer[i]) / 32768.0f; // Magic number, nah it is divided by a 16 bit signed integer max value
             }
 
             // Set up resampling parameters
@@ -209,6 +203,10 @@ namespace MP3MediaPlayer {
                 std::cerr << "Failed to close PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
             }
             stream = nullptr;
+        }
+        if (mh)
+        {
+            mpg123_close(mh);
         }
     }
 

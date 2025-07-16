@@ -26,7 +26,7 @@ void PlaylistManager::ConsumePlaylist() const
     while (!stopFlag.load()) {
         if (!playlist->isEmpty()) {
             // Check if there's music to play and player isn't already playing
-            if (const auto currentMusic = playlist->currentMusic(); currentMusic && !player->isPlaying())
+            if (const auto currentMusic = playlist->currentMusic(); currentMusic && !player->isPlaying() && !player->isLoaded())
             {
                 player->music(currentMusic->music.path.c_str());
                 player->play();
@@ -36,6 +36,7 @@ void PlaylistManager::ConsumePlaylist() const
             {
                 playlist->playNext();
                 // After moving to next track, start playing if there's still music in the playlist
+                // We need to re-check immediately here to handle the case when "next" is manually triggered
                 if (const auto nextMusic = playlist->currentMusic(); nextMusic)
                 {
                     player->music(nextMusic->music.path.c_str());
