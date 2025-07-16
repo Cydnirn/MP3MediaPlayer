@@ -3,6 +3,7 @@
 //
 
 #include "PlayMP3.h"
+#include <samplerate.h>
 
 namespace MP3MediaPlayer {
     PlayMP3::PlayMP3() {
@@ -36,6 +37,7 @@ namespace MP3MediaPlayer {
         stop();
 
         track = mp3;
+        const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(driver);
         if (const int openResult = mpg123_open(mh, mp3); openResult != MPG123_OK) {
             std::cerr << "Failed to open MP3 file: " << mpg123_strerror(mh) << std::endl;
             throw std::runtime_error("Failed to open MP3 file");
@@ -46,16 +48,16 @@ namespace MP3MediaPlayer {
             throw std::runtime_error("Failed to get MP3 format");
         }
         //std::cout << "MP3 Format: " << rate << " Hz, " << channels << " channels, encoding: " << encoding << std::endl;
-        if (rate < 48000)
+        if (rate < deviceInfo->defaultSampleRate)
         {
-            std::cerr << "Warning: Sample rate is below 48 kHz, which may affect audio quality." << std::endl;
-            rate = Pa_GetDeviceInfo(driver)->defaultSampleRate; // Use device's default sample rate
+            std::cerr << "Warning: Sample rate is below device sample rate, which may affect audio quality." << std::endl;
+            std::cerr << "Device sample rate: " << deviceInfo->defaultSampleRate << " Hz" << std::endl;
         }
         // Set up PortAudio stream parameters
         param.device = driver;
         param.channelCount = channels;
         param.sampleFormat = paFloat32; // Use float32 format for PortAudio
-        param.suggestedLatency = Pa_GetDeviceInfo(driver)->defaultLowOutputLatency;
+        param.suggestedLatency = deviceInfo->defaultLowOutputLatency;
         param.hostApiSpecificStreamInfo = nullptr;
     }
 
@@ -70,14 +72,19 @@ namespace MP3MediaPlayer {
 
         // Start a new thread for playback if not already running
         if (!playbackThread.joinable()) {
+#ifdef _WIN32
+            playbackThread = std::thread(&PlayMP3::playbackLoopNoResampling, this);
+#else
             playbackThread = std::thread(&PlayMP3::playbackLoop, this);
+#endif
         } else {
             // If thread is running but paused, unpause it
             isPaused = false;
         }
     }
 
-    void PlayMP3::playbackLoop() {
+    void PlayMP3::playbackLoopNoResampling()
+    {
         // Use a smaller, fixed buffer size for lower latency
         // Calculate proper MP3 frame size based on bitrate and sample rate
         long bitrate = 0;
@@ -170,6 +177,138 @@ namespace MP3MediaPlayer {
                 std::cerr << "Failed to close PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
             }
             stream = nullptr;
+        }
+    }
+
+
+    void PlayMP3::playbackLoop() {
+        const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(param.device);
+        const double deviceSampleRate = deviceInfo->defaultSampleRate;
+        // Use a smaller, fixed buffer size for lower latency
+        // Calculate proper MP3 frame size based on bitrate and sample rate
+        long bitrate = 0;
+        mpg123_getformat(mh, &rate, &channels, &encoding); // Ensure we have current format
+        // mpg123_format_none(mh); // Reset format to allow reformatting
+        // mpg123_format(mh, rate, channels, MPG123_ENC_FLOAT_32); // Set desired output format
+
+        // Initiate libsamplerate
+        int error;
+        SRC_STATE* srcState = src_new(SRC_SINC_BEST_QUALITY, channels, &error);
+        if(srcState == nullptr) {
+            std::cerr << "Failed to create SRC state: " << src_strerror(error) << std::endl;
+            return;
+        }
+        // Calculate resampling ratio
+        mpg123_frameinfo2 info;
+        const double resampleRatio = deviceSampleRate / static_cast<double>(rate);
+        if (mpg123_info2(mh, &info) == MPG123_OK)
+        {
+            bitrate = info.bitrate;
+        }else
+        {
+            bitrate = 128; // Default to 128 kbps if bitrate cannot be determined
+        }// Get bitrate in kbps
+        const int padding = 0; // Would need mpg123 header analysis to determine padding
+        size_t frames = (144 * bitrate * 1000 / rate) + padding;
+        frames = frames > 0 ? frames : 1024; // Fallback to 1024 if calculation fails
+       // Open stream with optimized settings
+        {
+            std::lock_guard lock(mutex);
+            err = Pa_OpenStream(
+                    &stream,
+                    nullptr,
+                    &param,
+                    deviceSampleRate,
+                    frames,
+                    paClipOff,
+                    nullptr,
+                    nullptr
+            );
+
+            if (err != paNoError) {
+                std::cerr << "Failed to open PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
+                std::cerr << "Frames " << frames << std::endl;
+                std::cerr << "Sample Rate " << rate << " channels " << channels << std::endl;
+                return;
+            }
+
+            err = Pa_StartStream(stream);
+            if (err != paNoError) {
+                std::cerr << "Failed to start PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
+                return;
+            }
+        }
+
+        // Allocate buffers for processing and resampling
+        inputBuffer.resize(frames * channels);
+        outputBuffer.resize(frames * channels);
+        resampledBuffer.resize(frames * channels * 2); // Extra space for resampling
+
+        SRC_DATA srcData;
+        srcData.src_ratio = resampleRatio;
+        srcData.output_frames = frames * 2; // Allow for rate increase
+        srcData.data_in = inputBuffer.data();
+        srcData.data_out = resampledBuffer.data();
+
+        // Read and write loop with resampling
+        while (!shouldStop) {
+            if (isPaused) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                continue;
+            }
+
+            // Read MP3 data into the short buffer
+            size_t bytesToRead = outputBuffer.size() * sizeof(short);
+            if (mpg123_read(mh, outputBuffer.data(), bytesToRead, &done) != MPG123_OK) {
+                songFinished = true;
+                break;
+            }
+
+            // Calculate actual frames read
+            const size_t framesRead = done / (sizeof(short) * channels);
+            if (framesRead == 0) {
+                songFinished = true;
+                break;
+            }
+
+            // Convert samples from short to float format for resampling
+            for (size_t i = 0; i < framesRead * channels; ++i) {
+                inputBuffer[i] = static_cast<float>(outputBuffer[i]) / 32768.0f; // Magic number, nah it is divided by a 16 bit signed integer max value
+            }
+
+            // Set up resampling parameters
+            srcData.input_frames = framesRead;
+            int srcResult = src_process(srcState, &srcData);
+            if (srcResult != 0) {
+                std::cerr << "Resampling error: " << src_strerror(srcResult) << std::endl;
+                break;
+            }
+
+            // Write resampled data to stream
+            err = Pa_WriteStream(stream, resampledBuffer.data(), srcData.output_frames_gen);
+            if (err != paNoError) {
+                std::cerr << "Failed to write to stream: " << Pa_GetErrorText(err) << std::endl;
+                break;
+            }
+        }
+        // Clean up stream
+        src_delete(srcState);
+
+        std::lock_guard<std::mutex> lock(mutex);
+        if (stream) {
+            err = Pa_StopStream(stream);
+            if (err != paNoError) {
+                std::cerr << "Failed to stop PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
+            }
+            err = Pa_CloseStream(stream);
+            if (err != paNoError) {
+                std::cerr << "Failed to close PortAudio stream: " << Pa_GetErrorText(err) << std::endl;
+            }
+            stream = nullptr;
+        }
+        if (mh)
+        {
+            mpg123_close(mh);
         }
     }
 

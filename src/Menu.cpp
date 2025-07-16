@@ -18,7 +18,7 @@ void Menu::displayMusic(const Music& music)
 
 void Menu::displayMusicList(const std::vector<Music>& musicList)
 {
-    inNowPlaying = true;
+    inNowPlaying = false;
     int i = 1;
     std::cout << "\n====================    Music List    ====================\n";
     for (const auto& music : musicList) {
@@ -75,6 +75,14 @@ void Menu::displayPlaylist()
     }
     playlist->playlistIterate();
 }
+
+void Menu::displayPlaylistMenu()
+{
+    inNowPlaying = false;
+    std::cout << "\n====================    Playlist Menu    ====================\n";
+    std::cout << "| 1. Remove Music\n| 2. Move Music Left\n| 3. Move Music Right\n| 4. Back to Main Menu\n";
+}
+
 
 void Menu::displayCurrentPlaying()
 {

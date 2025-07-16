@@ -21,7 +21,7 @@ class Library
     void sortByHurufAsc();
     void sortByHurufDes();
 public:
-    Library(){};
+    Library()= default;
     ~Library()
     {
         musicList.clear();

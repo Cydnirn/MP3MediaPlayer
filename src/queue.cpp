@@ -54,7 +54,11 @@ void Queue::playlistIterate() const
     MusicNode *bantu = head;
     int index = 1;
     while (bantu != nullptr) {
-        std::cout << index++ << "." << bantu->music.title << " - " << bantu->music.artist << std::endl;
+        std::cout << index++ << "." << bantu->music.title << " - " << bantu->music.artist;
+        if (bantu == head) {
+            std::cout << " (Now Playing)";
+        }
+        std::cout << std::endl;
         bantu = bantu->next;
     }
 }
@@ -82,24 +86,12 @@ void Queue::removeMusic(const int pos) {
   }
 
   int total = countList();
-  if (pos < 1 || pos > total) {
+  if (pos < 2 || pos > total) {
     std::cout<< "index tidak valid! " << total << std::endl;
     return;
   }
 
   MusicNode *del;
-
-  if (pos == 1) {
-    del = head;
-    head = head->next;
-    delete del;
-
-    if (head == nullptr) {
-        tail = nullptr;
-    }
-
-    return;
-  }
 
   MusicNode* prev = head;
   for(int i = 1; i < pos - 1; i++) {
@@ -171,7 +163,7 @@ void Queue::addMusicAtPos(const int pos, const std::vector<Music>& Library,int l
 }
 
 void Queue::moveLeft(const int pos) {
-    if ((isEmpty()) || pos <= 1 || pos > countList()) {
+    if ((isEmpty()) || pos <= 2 || pos > countList()) {
         std::cout << "Invalid position to be moved to the left!\n";
         return;
     }
@@ -203,7 +195,7 @@ void Queue::moveLeft(const int pos) {
 
 void Queue::moveRight(const int pos) {
     int total = countList();
-    if (isEmpty() || pos < 1 || pos >= total) {
+    if (isEmpty() || pos < 2 || pos >= total) {
         std::cout << "Invalid position to be moved to the right!\n";
         return;
     }

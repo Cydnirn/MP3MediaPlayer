@@ -4,6 +4,7 @@ project(MP3MediaPlayer)
 set(CMAKE_CXX_STANDARD 20)
 
 find_package(mpg123 CONFIG REQUIRED)
+find_package(SampleRate CONFIG REQUIRED)
 find_package(portaudio CONFIG REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(taglib CONFIG REQUIRED)
@@ -22,10 +23,12 @@ add_executable(MP3MediaPlayer src/main.cpp
         src/queue.cpp
         src/Menu.cpp
         src/Menu.h
+        src/MP3MediaPlayer/PlayMP3.cpp
 
 )
 
 target_link_libraries(MP3MediaPlayer PRIVATE MPG123::libmpg123 MPG123::libout123 MPG123::libsyn123)
+target_link_libraries(MP3MediaPlayer PRIVATE SampleRate::samplerate)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_libraries(MP3MediaPlayer PRIVATE portaudio_static)
 else()
